@@ -1,6 +1,9 @@
 #[macro_use]
 extern crate lazy_static;
+#[macro_use]
+extern crate itertools;
 
+use itertools::Itertools;
 use std::sync::Mutex;
 
 const MAX_GAUCHOS: usize = 16;
@@ -45,7 +48,7 @@ fn count_gauchos() -> usize {
     counter
 }
 
-fn find_exmpty_slot() -> Option<usize> {
+fn find_empty_slot() -> Option<usize> {
     WORLD
         .lock()
         .unwrap()
@@ -55,13 +58,25 @@ fn find_exmpty_slot() -> Option<usize> {
 }
 
 fn add_gaucho() -> Result<(), &'static str> {
-    match find_exmpty_slot() {
+    match find_empty_slot() {
         None => Err("No more slots"),
         Some(index) => {
             WORLD.lock().unwrap().gauchos[index].active = true;
             Ok(())
         }
     }
+}
+
+fn get_active_gauchos() -> Vec<usize> {
+    let mut ret = Vec::new();
+    WORLD
+        .lock()
+        .unwrap()
+        .gauchos
+        .iter()
+        .positions(|x| x.active == true)
+        .for_each(|x| ret.push(x));
+    ret
 }
 
 #[cfg(test)]
@@ -80,5 +95,14 @@ mod tests {
         let _ = add_gaucho();
         let _ = add_gaucho();
         assert_eq!(count_gauchos(), 2);
+    }
+
+    #[test]
+    fn count_active_gauchos() {
+        WORLD.lock().unwrap().reset();
+        let _ = add_gaucho();
+        let _ = add_gaucho();
+        let _ = add_gaucho();
+        assert_eq!(get_active_gauchos().len(), 3);
     }
 }
