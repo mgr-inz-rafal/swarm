@@ -1,6 +1,5 @@
 #[macro_use]
 extern crate lazy_static;
-#[macro_use]
 extern crate itertools;
 
 use itertools::Itertools;
@@ -57,7 +56,7 @@ fn find_empty_slot() -> Option<usize> {
         .position(|&x| x.active == false)
 }
 
-fn add_gaucho() -> Result<(), &'static str> {
+pub fn add_gaucho() -> Result<(), &'static str> {
     match find_empty_slot() {
         None => Err("No more slots"),
         Some(index) => {
@@ -67,7 +66,7 @@ fn add_gaucho() -> Result<(), &'static str> {
     }
 }
 
-fn get_active_gauchos() -> Vec<usize> {
+pub fn get_active_gauchos_indices() -> Vec<usize> {
     let mut ret = Vec::new();
     WORLD
         .lock()
@@ -77,6 +76,18 @@ fn get_active_gauchos() -> Vec<usize> {
         .positions(|x| x.active == true)
         .for_each(|x| ret.push(x));
     ret
+}
+
+pub fn get_gaucho_position(index: usize) -> Result<[f64; 2], &'static str> {
+    if index >= MAX_GAUCHOS {
+        return Err("Index out of bounds");
+    }
+    let g = WORLD.lock().unwrap().gauchos[index];
+    if !g.active {
+        Err("No gaucho with requested index")
+    } else {
+        Ok([g.x, g.y])
+    }
 }
 
 #[cfg(test)]
@@ -103,6 +114,6 @@ mod tests {
         let _ = add_gaucho();
         let _ = add_gaucho();
         let _ = add_gaucho();
-        assert_eq!(get_active_gauchos().len(), 3);
+        assert_eq!(get_active_gauchos_indices().len(), 3);
     }
 }
