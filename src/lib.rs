@@ -5,10 +5,18 @@ extern crate itertools;
 use itertools::Itertools;
 use std::sync::Mutex;
 
-const MAX_GAUCHOS: usize = 16;
+const MAX_GAUCHOS: usize = 8;
+const MAX_SLOTS: usize = 16;
 
 #[derive(Copy, Clone)]
 struct Gaucho {
+    active: bool,
+    x: f64,
+    y: f64,
+    id: usize,
+}
+#[derive(Copy, Clone)]
+struct Slot {
     active: bool,
     x: f64,
     y: f64,
@@ -16,6 +24,7 @@ struct Gaucho {
 
 struct World {
     gauchos: [Gaucho; MAX_GAUCHOS],
+    slots: [Slot; MAX_SLOTS],
 }
 
 impl World {
@@ -33,7 +42,13 @@ lazy_static! {
             active: false,
             x: 0.0,
             y: 0.0,
+            id: 666
         }; MAX_GAUCHOS],
+        slots: [Slot {
+            active: false,
+            x: 0.0,
+            y: 0.0,
+        }; MAX_SLOTS],
     });
 }
 
@@ -47,7 +62,7 @@ fn count_gauchos() -> usize {
     counter
 }
 
-fn find_empty_slot() -> Option<usize> {
+fn find_empty_gaucho() -> Option<usize> {
     WORLD
         .lock()
         .unwrap()
@@ -56,7 +71,26 @@ fn find_empty_slot() -> Option<usize> {
         .position(|&x| x.active == false)
 }
 
+fn find_empty_slot() -> Option<usize> {
+    WORLD
+        .lock()
+        .unwrap()
+        .slots
+        .iter()
+        .position(|&x| x.active == false)
+}
+
 pub fn add_gaucho() -> Result<usize, &'static str> {
+    match find_empty_gaucho() {
+        None => Err("No more gauchos"),
+        Some(index) => {
+            WORLD.lock().unwrap().gauchos[index].active = true;
+            Ok(index)
+        }
+    }
+}
+
+pub fn add_slot() -> Result<usize, &'static str> {
     match find_empty_slot() {
         None => Err("No more slots"),
         Some(index) => {
