@@ -90,8 +90,15 @@ pub fn add_gaucho() -> Result<usize, &'static str> {
     }
 }
 
+pub fn find_empty_object<'a, I>(mut it: I) -> Option<usize>
+where
+    I: Iterator<Item = &'a Slot>,
+{
+    it.position(|&x| x.active == false)
+}
+
 pub fn add_slot() -> Result<usize, &'static str> {
-    match find_empty_slot() {
+    match find_empty_object(WORLD.lock().unwrap().slots.iter()) {
         None => Err("No more slots"),
         Some(index) => {
             WORLD.lock().unwrap().gauchos[index].active = true;
