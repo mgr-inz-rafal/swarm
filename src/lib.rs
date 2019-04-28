@@ -56,12 +56,12 @@ fn find_empty_slot() -> Option<usize> {
         .position(|&x| x.active == false)
 }
 
-pub fn add_gaucho() -> Result<(), &'static str> {
+pub fn add_gaucho() -> Result<usize, &'static str> {
     match find_empty_slot() {
         None => Err("No more slots"),
         Some(index) => {
             WORLD.lock().unwrap().gauchos[index].active = true;
-            Ok(())
+            Ok(index)
         }
     }
 }
@@ -90,6 +90,20 @@ pub fn get_gaucho_position(index: usize) -> Result<[f64; 2], &'static str> {
     }
 }
 
+pub fn set_gaucho_position(index: usize, pos: [f64; 2]) -> Result<(), &'static str> {
+    if index >= MAX_GAUCHOS {
+        return Err("Index out of bounds");
+    }
+    let g = &mut WORLD.lock().unwrap().gauchos[index];
+    if !g.active {
+        Err("No gaucho with requested index")
+    } else {
+        g.x = pos[0];
+        g.y = pos[1];
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -106,6 +120,15 @@ mod tests {
         let _ = add_gaucho();
         let _ = add_gaucho();
         assert_eq!(count_gauchos(), 2);
+    }
+
+    #[test]
+    fn gaucho_position() {
+        WORLD.lock().unwrap().reset();
+        let i = add_gaucho();
+        let _ = set_gaucho_position(i.unwrap(), [123.0, 70.0]);
+        let pos = get_gaucho_position(i.unwrap()).unwrap();
+        assert!(pos[0] > 122.0 && pos[1] > 69.0 && pos[0] < 124.0 && pos[1] < 71.0);
     }
 
     #[test]
