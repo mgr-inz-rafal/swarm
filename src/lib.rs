@@ -112,18 +112,42 @@ pub fn get_gaucho_position(index: usize) -> Result<[f64; 2], &'static str> {
     }
 }
 
-pub fn set_gaucho_position(index: usize, pos: [f64; 2]) -> Result<(), &'static str> {
-    if index >= MAX_GAUCHOS {
+pub fn get_slot_position(index: usize) -> Result<[f64; 2], &'static str> {
+    if index >= MAX_SLOTS {
         return Err("Index out of bounds");
     }
-    let g = &mut WORLD.lock().unwrap().gauchos[index];
+    let g = WORLD.lock().unwrap().slots[index];
     if !g.active {
-        Err("No gaucho with requested index")
+        Err("No slot with requested index")
     } else {
-        g.x = pos[0];
-        g.y = pos[1];
-        Ok(())
+        Ok([g.x, g.y])
     }
+}
+
+macro_rules! set_object_position {
+    ( $e:expr, $i_index: ident, $i_pos: ident, $i_max: ident ) => {{
+        if $i_index >= $i_max {
+            return Err("Index out of bounds");
+        }
+        let obj = &mut $e[$i_index];
+        if !obj.active {
+            Err("No object with requested index")
+        } else {
+            obj.x = $i_pos[0];
+            obj.y = $i_pos[1];
+            Ok(())
+        }
+    }};
+}
+
+pub fn set_gaucho_position(index: usize, pos: [f64; 2]) -> Result<(), &'static str> {
+    let world = &mut WORLD.lock().unwrap();
+    set_object_position!(world.gauchos, index, pos, MAX_GAUCHOS)
+}
+
+pub fn set_slot_position(index: usize, pos: [f64; 2]) -> Result<(), &'static str> {
+    let world = &mut WORLD.lock().unwrap();
+    set_object_position!(world.slots, index, pos, MAX_SLOTS)
 }
 
 #[cfg(test)]
@@ -151,6 +175,15 @@ mod tests {
         let _ = set_gaucho_position(i.unwrap(), [123.0, 70.0]);
         let pos = get_gaucho_position(i.unwrap()).unwrap();
         assert!(pos[0] > 122.0 && pos[1] > 69.0 && pos[0] < 124.0 && pos[1] < 71.0);
+    }
+
+    #[test]
+    fn slot_position() {
+        WORLD.lock().unwrap().reset();
+        let i = add_slot();
+        let _ = set_slot_position(i.unwrap(), [50.0, 150.0]);
+        let pos = get_slot_position(i.unwrap()).unwrap();
+        assert!(pos[0] > 49.0 && pos[1] > 51.0 && pos[0] < 149.0 && pos[1] < 151.0);
     }
 
     #[test]
