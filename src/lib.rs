@@ -27,16 +27,16 @@ struct World {
     slots: [Slot; MAX_SLOTS],
 }
 
+macro_rules! clear_objects {
+    ( $e:expr ) => {
+        $e.iter_mut().for_each(|mut x| x.active = false);
+    };
+}
+
 impl World {
     fn reset(&mut self) {
-        self.clear_gauchos();
-        self.clear_slots();
-    }
-    fn clear_gauchos(&mut self) {
-        self.gauchos.iter_mut().for_each(|mut x| x.active = false);
-    }
-    fn clear_slots(&mut self) {
-        self.slots.iter_mut().for_each(|mut x| x.active = false);
+        clear_objects!(self.gauchos);
+        clear_objects!(self.slots);
     }
 }
 
