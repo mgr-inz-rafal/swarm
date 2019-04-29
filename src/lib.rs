@@ -62,46 +62,29 @@ fn count_gauchos() -> usize {
     counter
 }
 
-fn find_empty_gaucho() -> Option<usize> {
-    WORLD
-        .lock()
-        .unwrap()
-        .gauchos
-        .iter()
-        .position(|&x| x.active == false)
-}
-
-fn find_empty_slot() -> Option<usize> {
-    WORLD
-        .lock()
-        .unwrap()
-        .slots
-        .iter()
-        .position(|&x| x.active == false)
+macro_rules! find_empty_object {
+    ( $e:expr ) => {{
+        $e.iter().position(|&x| x.active == false)
+    }};
 }
 
 pub fn add_gaucho() -> Result<usize, &'static str> {
-    match find_empty_gaucho() {
+    let mut world = WORLD.lock().unwrap();
+    match find_empty_object!(world.gauchos) {
         None => Err("No more gauchos"),
         Some(index) => {
-            WORLD.lock().unwrap().gauchos[index].active = true;
+            world.gauchos[index].active = true;
             Ok(index)
         }
     }
 }
 
-pub fn find_empty_object<'a, I>(mut it: I) -> Option<usize>
-where
-    I: Iterator<Item = &'a Slot>,
-{
-    it.position(|&x| x.active == false)
-}
-
 pub fn add_slot() -> Result<usize, &'static str> {
-    match find_empty_object(WORLD.lock().unwrap().slots.iter()) {
+    let mut world = WORLD.lock().unwrap();
+    match find_empty_object!(world.slots) {
         None => Err("No more slots"),
         Some(index) => {
-            WORLD.lock().unwrap().gauchos[index].active = true;
+            world.slots[index].active = true;
             Ok(index)
         }
     }
