@@ -202,4 +202,14 @@ mod tests {
         let _ = add_gaucho();
         assert_eq!(get_active_gauchos_indices().len(), 3);
     }
+
+    #[test]
+    fn count_active_slots() {
+        WORLD.lock().unwrap().reset();
+        let _ = add_slot();
+        let _ = add_slot();
+        let _ = add_slot();
+        let _ = add_slot();
+        assert_eq!(get_active_slots_indices().len(), 4);
+    }
 }
