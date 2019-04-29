@@ -88,16 +88,24 @@ pub fn add_slot() -> Result<usize, &'static str> {
     insert_object!(world.slots)
 }
 
+macro_rules! get_active_objects_indices {
+    ( $e:expr ) => {{
+        let mut ret = Vec::new();
+        $e.iter()
+            .positions(|x| x.active == true)
+            .for_each(|x| ret.push(x));
+        ret
+    }};
+}
+
 pub fn get_active_gauchos_indices() -> Vec<usize> {
-    let mut ret = Vec::new();
-    WORLD
-        .lock()
-        .unwrap()
-        .gauchos
-        .iter()
-        .positions(|x| x.active == true)
-        .for_each(|x| ret.push(x));
-    ret
+    let g = WORLD.lock().unwrap().gauchos;
+    get_active_objects_indices!(g)
+}
+
+pub fn get_active_slots_indices() -> Vec<usize> {
+    let s = WORLD.lock().unwrap().slots;
+    get_active_objects_indices!(s)
 }
 
 macro_rules! get_object_position {
