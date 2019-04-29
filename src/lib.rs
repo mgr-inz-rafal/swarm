@@ -62,32 +62,26 @@ fn count_gauchos() -> usize {
     counter
 }
 
-macro_rules! find_empty_object {
+macro_rules! insert_object {
     ( $e:expr ) => {{
-        $e.iter().position(|&x| x.active == false)
+        match $e.iter().position(|&x| x.active == false) {
+            None => Err("No more slots"),
+            Some(index) => {
+                $e[index].active = true;
+                Ok(index)
+            }
+        }
     }};
 }
 
 pub fn add_gaucho() -> Result<usize, &'static str> {
     let mut world = WORLD.lock().unwrap();
-    match find_empty_object!(world.gauchos) {
-        None => Err("No more gauchos"),
-        Some(index) => {
-            world.gauchos[index].active = true;
-            Ok(index)
-        }
-    }
+    insert_object!(world.gauchos)
 }
 
 pub fn add_slot() -> Result<usize, &'static str> {
     let mut world = WORLD.lock().unwrap();
-    match find_empty_object!(world.slots) {
-        None => Err("No more slots"),
-        Some(index) => {
-            world.slots[index].active = true;
-            Ok(index)
-        }
-    }
+    insert_object!(world.slots)
 }
 
 pub fn get_active_gauchos_indices() -> Vec<usize> {
