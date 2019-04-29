@@ -100,28 +100,28 @@ pub fn get_active_gauchos_indices() -> Vec<usize> {
     ret
 }
 
+macro_rules! get_object_position {
+    ( $e:expr, $i_index: ident, $i_max: ident ) => {{
+        if $i_index >= $i_max {
+            return Err("Index out of bounds");
+        }
+        let obj = $e[$i_index];
+        if !obj.active {
+            Err("No object with requested index")
+        } else {
+            Ok([obj.x, obj.y])
+        }
+    }};
+}
+
 pub fn get_gaucho_position(index: usize) -> Result<[f64; 2], &'static str> {
-    if index >= MAX_GAUCHOS {
-        return Err("Index out of bounds");
-    }
-    let g = WORLD.lock().unwrap().gauchos[index];
-    if !g.active {
-        Err("No gaucho with requested index")
-    } else {
-        Ok([g.x, g.y])
-    }
+    let g = WORLD.lock().unwrap().gauchos;
+    get_object_position!(g, index, MAX_GAUCHOS)
 }
 
 pub fn get_slot_position(index: usize) -> Result<[f64; 2], &'static str> {
-    if index >= MAX_SLOTS {
-        return Err("Index out of bounds");
-    }
-    let g = WORLD.lock().unwrap().slots[index];
-    if !g.active {
-        Err("No slot with requested index")
-    } else {
-        Ok([g.x, g.y])
-    }
+    let s = WORLD.lock().unwrap().slots;
+    get_object_position!(s, index, MAX_GAUCHOS)
 }
 
 macro_rules! set_object_position {
