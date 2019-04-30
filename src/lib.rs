@@ -23,7 +23,7 @@ pub struct Position {
 }
 
 #[derive(Copy, Clone)]
-pub struct Gaucho {
+pub struct Bronco {
     pub pos: Position,
 }
 
@@ -33,7 +33,7 @@ pub struct Slot {
 }
 
 pub struct Gauchos {
-    pub gauchos: Vec<Gaucho>,
+    pub broncos: Vec<Bronco>,
     pub slots: Vec<Slot>,
 }
 
@@ -44,7 +44,7 @@ pub fn new() -> Gauchos {
 impl Gauchos {
     fn new() -> Gauchos {
         Gauchos {
-            gauchos: Vec::new(),
+            broncos: Vec::new(),
             slots: Vec::new(),
         }
     }
@@ -53,12 +53,12 @@ impl Gauchos {
         vec.push(obj);
     }
 
-    pub fn add_gaucho(&mut self, gaucho: Gaucho) {
-        Gauchos::add_object(&mut self.gauchos, gaucho);
+    pub fn add_gaucho(&mut self, gaucho: Bronco) {
+        Gauchos::add_object(&mut self.broncos, gaucho);
     }
 
-    pub fn get_gauchos(&self) -> &Vec<Gaucho> {
-        &self.gauchos
+    pub fn get_gauchos(&self) -> &Vec<Bronco> {
+        &self.broncos
     }
 
     pub fn add_slot(&mut self, slot: Slot) {
