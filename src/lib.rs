@@ -1,7 +1,7 @@
 #[macro_export]
-macro_rules! gaucho {
+macro_rules! bronco {
     ($x: expr, $y: expr) => {
-        Gaucho {
+        Bronco {
             pos: gauchos::Position { x: $x, y: $y },
         }
     };
@@ -53,11 +53,11 @@ impl Gauchos {
         vec.push(obj);
     }
 
-    pub fn add_gaucho(&mut self, gaucho: Bronco) {
-        Gauchos::add_object(&mut self.broncos, gaucho);
+    pub fn add_bronco(&mut self, bronco: Bronco) {
+        Gauchos::add_object(&mut self.broncos, bronco);
     }
 
-    pub fn get_gauchos(&self) -> &Vec<Bronco> {
+    pub fn get_broncos(&self) -> &Vec<Bronco> {
         &self.broncos
     }
 
@@ -71,7 +71,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn gauchos_count_zero() {
+    fn broncos_count_zero() {
         assert_eq!(0, 0);
     }
 }
