@@ -1,5 +1,4 @@
 #[macro_use]
-extern crate lazy_static;
 extern crate itertools;
 
 use itertools::Itertools;
@@ -62,72 +61,83 @@ struct Slot {
 }
 impl_HasActivator!(for Gaucho, Slot);
 
-struct World {
+pub struct World {
     gauchos: [Gaucho; MAX_GAUCHOS],
     slots: [Slot; MAX_SLOTS],
 }
 
-pub fn clear_objects<T: HasActivator>(arr: &mut [T]) {
-    arr.iter_mut()
-        .for_each(|x| x.get_activator_mut().deactivate());
+pub fn new_gauchos() -> World {
+    World::new()
 }
 
 impl World {
-    fn reset(&mut self) {
-        clear_objects(&mut self.gauchos);
-        clear_objects(&mut self.slots);
-    }
-}
-
-lazy_static! {
-    static ref WORLD: Mutex<World> = Mutex::new(World {
-        gauchos: [Gaucho {
-            activator: Activator { active: false },
-            x: 0.0,
-            y: 0.0,
-            id: 666
-        }; MAX_GAUCHOS],
-        slots: [Slot {
-            activator: Activator { active: false },
-            x: 0.0,
-            y: 0.0,
-        }; MAX_SLOTS],
-    });
-}
-
-fn count_gauchos() -> usize {
-    let mut counter = 0;
-    WORLD.lock().unwrap().gauchos.iter().for_each(|&x| {
-        if x.get_activator().is_active() {
-            counter += 1;
-        }
-    });
-    counter
-}
-
-pub fn insert_object<T: HasActivator>(arr: &mut [T]) -> Result<usize, &'static str> {
-    match arr
-        .iter()
-        .position(|x| x.get_activator().is_active() == false)
-    {
-        None => Err("No more slots"),
-        Some(index) => {
-            arr[index].get_activator_mut().activate();
-            Ok(index)
+    fn new() -> World {
+        World {
+            gauchos: [Gaucho {
+                activator: Activator { active: false },
+                x: 0.0,
+                y: 0.0,
+                id: 666,
+            }; MAX_GAUCHOS],
+            slots: [Slot {
+                activator: Activator { active: false },
+                x: 0.0,
+                y: 0.0,
+            }; MAX_SLOTS],
         }
     }
+
+    fn add_object<T: HasActivator>(arr: &mut [T]) -> Result<usize, &'static str> {
+        match arr.iter().position(|x| !x.get_activator().is_active()) {
+            None => Err("No more slots"),
+            Some(index) => {
+                arr[index].get_activator_mut().activate();
+                Ok(index)
+            }
+        }
+    }
+
+    fn count_active_objects<T: HasActivator>(arr: &[T]) -> usize {
+        let mut counter = 0;
+        arr.iter().for_each(|x| {
+            if x.get_activator().is_active() {
+                counter += 1;
+            }
+        });
+        counter
+    }
+
+    /*
+    fn set_object_position
+    */
+
+    pub fn add_gaucho(&mut self) -> Result<usize, &'static str> {
+        World::add_object(&mut self.gauchos)
+    }
+
+    pub fn add_slot(&mut self) -> Result<usize, &'static str> {
+        World::add_object(&mut self.slots)
+    }
+
+    pub fn count_gauchos(&self) -> usize {
+        World::count_active_objects(&self.gauchos)
+    }
+
+    pub fn count_slots(&self) -> usize {
+        World::count_active_objects(&self.slots)
+    }
+
+    /*
+    pub fn set_gaucho_position(&self, index: usize, pos: [f64; 2]) -> Result<(), &'static str> {
+        if index >= MAX_GAUCHOS {
+            Err(format!("Max index for Gaucho is {}", MAX_GAUCHOS));
+        }
+        set_object_position(self.gauchos[index], pos)
+    }
+    */
 }
 
-pub fn add_gaucho() -> Result<usize, &'static str> {
-    let gauchos = &mut WORLD.lock().unwrap().gauchos;
-    insert_object(gauchos)
-}
-
-pub fn add_slot() -> Result<usize, &'static str> {
-    let slots = &mut WORLD.lock().unwrap().slots;
-    insert_object(slots)
-}
-
+/*
 fn get_active_objects_indices<T: HasActivator>(arr: &[T]) -> Vec<usize> {
     let mut ret = Vec::new();
     arr.iter()
@@ -136,16 +146,20 @@ fn get_active_objects_indices<T: HasActivator>(arr: &[T]) -> Vec<usize> {
     ret
 }
 
-pub fn get_active_gauchos_indices() -> Vec<usize> {
-    let gauchos = &WORLD.lock().unwrap().gauchos;
-    get_active_objects_indices(gauchos)
+pub fn get_active_gauchos_indices(world: &World) -> Vec<usize> {
+    let gauchos = world.gauchos;
+    get_active_objects_indices(&gauchos)
 }
+*/
 
+/*
 pub fn get_active_slots_indices() -> Vec<usize> {
     let slots = &WORLD.lock().unwrap().slots;
     get_active_objects_indices(slots)
 }
+*/
 
+/*
 macro_rules! get_object_position {
     ( $e:expr, $i_index: ident, $i_max: ident ) => {{
         if $i_index >= $i_max {
@@ -169,7 +183,9 @@ pub fn get_slot_position(index: usize) -> Result<[f64; 2], &'static str> {
     let s = WORLD.lock().unwrap().slots;
     get_object_position!(s, index, MAX_GAUCHOS)
 }
+*/
 
+/*
 macro_rules! set_object_position {
     ( $e:expr, $i_index: ident, $i_pos: ident, $i_max: ident ) => {{
         if $i_index >= $i_max {
@@ -195,6 +211,7 @@ pub fn set_slot_position(index: usize, pos: [f64; 2]) -> Result<(), &'static str
     let world = &mut WORLD.lock().unwrap();
     set_object_position!(world.slots, index, pos, MAX_SLOTS)
 }
+*/
 
 #[cfg(test)]
 mod tests {
@@ -202,26 +219,40 @@ mod tests {
 
     #[test]
     fn gauchos_count_zero() {
-        WORLD.lock().unwrap().reset();
-        assert_eq!(count_gauchos(), 0);
+        let world = new_gauchos();
+        assert_eq!(world.count_gauchos(), 0);
     }
 
     #[test]
     fn add_gauchos() {
-        WORLD.lock().unwrap().reset();
-        let _ = add_gaucho();
-        let _ = add_gaucho();
-        assert_eq!(count_gauchos(), 2);
+        let mut world = new_gauchos();
+        let _ = world.add_gaucho();
+        let _ = world.add_gaucho();
+        assert_eq!(world.count_gauchos(), 2);
     }
 
     #[test]
+    fn add_slots() {
+        let mut world = new_gauchos();
+        let _ = world.add_slot();
+        let _ = world.add_slot();
+        let _ = world.add_slot();
+        let _ = world.add_slot();
+        assert_eq!(world.count_slots(), 4);
+    }
+
+    /*
+    #[test]
     fn gaucho_position() {
-        WORLD.lock().unwrap().reset();
-        let i = add_gaucho();
-        let _ = set_gaucho_position(i.unwrap(), [123.0, 70.0]);
-        let pos = get_gaucho_position(i.unwrap()).unwrap();
+        let mut world = new_gauchos();
+        let i = world.add_gaucho();
+        let _ = world.set_gaucho_position(i.unwrap(), [123.0, 70.0]);
+        let pos = world.get_gaucho_position(i.unwrap()).unwrap();
         assert!(pos[0] > 122.0 && pos[1] > 69.0 && pos[0] < 124.0 && pos[1] < 71.0);
     }
+    */
+
+    /*
 
     #[test]
     fn slot_position() {
@@ -250,4 +281,5 @@ mod tests {
         let _ = add_slot();
         assert_eq!(get_active_slots_indices().len(), 4);
     }
+    */
 }
