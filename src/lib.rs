@@ -11,6 +11,7 @@ const MAX_SLOTS: usize = 16;
 pub trait Activable {
     fn is_active(&self) -> bool;
     fn activate(&mut self);
+    fn deactivate(&mut self);
 }
 
 #[derive(Copy, Clone)]
@@ -27,6 +28,9 @@ impl Activable for Gaucho {
     fn activate(&mut self) {
         self.active = true;
     }
+    fn deactivate(&mut self) {
+        self.active = false;
+    }
 }
 
 #[derive(Copy, Clone)]
@@ -42,6 +46,9 @@ impl Activable for Slot {
     fn activate(&mut self) {
         self.active = true;
     }
+    fn deactivate(&mut self) {
+        self.active = false;
+    }
 }
 
 struct World {
@@ -49,16 +56,14 @@ struct World {
     slots: [Slot; MAX_SLOTS],
 }
 
-macro_rules! clear_objects {
-    ( $e:expr ) => {
-        $e.iter_mut().for_each(|mut x| x.active = false);
-    };
+pub fn clear_objects<T: Activable>(arr: &mut [T]) {
+    arr.iter_mut().for_each(|mut x| x.deactivate());
 }
 
 impl World {
     fn reset(&mut self) {
-        clear_objects!(self.gauchos);
-        clear_objects!(self.slots);
+        clear_objects(&mut self.gauchos);
+        clear_objects(&mut self.slots);
     }
 }
 
