@@ -7,6 +7,43 @@ use std::sync::Mutex;
 const MAX_GAUCHOS: usize = 8;
 const MAX_SLOTS: usize = 16;
 
+pub trait Positionable {
+    fn get_coords(&self) -> (f64, f64);
+    fn set_coords(&mut self, position: (f64, f64));
+}
+
+#[derive(Copy, Clone)]
+pub struct Position {
+    x: f64,
+    y: f64,
+}
+impl Positionable for Position {
+    fn get_coords(&self) -> (f64, f64) {
+        (self.x, self.y)
+    }
+    fn set_coords(&mut self, position: (f64, f64)) {
+        self.x = position.0;
+        self.y = position.1;
+    }
+}
+
+pub trait HasPosition {
+    fn get_position(&self) -> &Position;
+    fn get_position_mut(&mut self) -> &mut Position;
+}
+macro_rules! impl_HasPosition {
+    ( for $($type:ty),+ ) => {
+        $(impl HasPosition for $type {
+            fn get_position_mut(&mut self) -> &mut Position {
+                &mut self.position
+            }
+            fn get_position(&self) -> &Position {
+                &self.position
+            }
+        })*
+    };
+}
+
 pub trait Activable {
     fn is_active(&self) -> bool;
     fn activate(&mut self);
@@ -49,17 +86,16 @@ macro_rules! impl_HasActivator {
 #[derive(Copy, Clone)]
 struct Gaucho {
     activator: Activator,
-    x: f64,
-    y: f64,
+    position: Position,
     id: usize,
 }
 #[derive(Copy, Clone)]
 struct Slot {
     activator: Activator,
-    x: f64,
-    y: f64,
+    position: Position,
 }
 impl_HasActivator!(for Gaucho, Slot);
+impl_HasPosition!(for Gaucho, Slot);
 
 pub struct World {
     gauchos: [Gaucho; MAX_GAUCHOS],
@@ -75,14 +111,12 @@ impl World {
         World {
             gauchos: [Gaucho {
                 activator: Activator { active: false },
-                x: 0.0,
-                y: 0.0,
+                position: Position { x: 0.0, y: 0.0 },
                 id: 666,
             }; MAX_GAUCHOS],
             slots: [Slot {
                 activator: Activator { active: false },
-                x: 0.0,
-                y: 0.0,
+                position: Position { x: 0.0, y: 0.0 },
             }; MAX_SLOTS],
         }
     }
@@ -107,9 +141,13 @@ impl World {
         counter
     }
 
-    /*
-    fn set_object_position
-    */
+    fn set_object_position<T: HasPosition>(obj: &mut T, position: (f64, f64)) {
+        obj.get_position_mut().set_coords(position);
+    }
+
+    fn get_object_position<T: HasPosition>(obj: &mut T) -> (f64, f64) {
+        obj.get_position().get_coords()
+    }
 
     pub fn add_gaucho(&mut self) -> Result<usize, &'static str> {
         World::add_object(&mut self.gauchos)
@@ -127,14 +165,34 @@ impl World {
         World::count_active_objects(&self.slots)
     }
 
-    /*
-    pub fn set_gaucho_position(&self, index: usize, pos: [f64; 2]) -> Result<(), &'static str> {
+    pub fn set_gaucho_position(
+        &mut self,
+        index: usize,
+        position: (f64, f64),
+    ) -> Result<(), &'static str> {
+        // TODO: Copy & pasted prelude to function
         if index >= MAX_GAUCHOS {
-            Err(format!("Max index for Gaucho is {}", MAX_GAUCHOS));
+            return Err("Index out of bounds");
         }
-        set_object_position(self.gauchos[index], pos)
+        if !self.gauchos[index].get_activator().is_active() {
+            return Err("No such gaucho");
+        }
+
+        World::set_object_position(&mut self.gauchos[index], position);
+        Ok(())
     }
-    */
+
+    pub fn get_gaucho_position(&mut self, index: usize) -> Result<(f64, f64), &'static str> {
+        // TODO: Copy & pasted prelude to function
+        if index >= MAX_GAUCHOS {
+            return Err("Index out of bounds");
+        }
+        if !self.gauchos[index].get_activator().is_active() {
+            return Err("No such gaucho");
+        }
+
+        Ok(World::get_object_position(&mut self.gauchos[index]))
+    }
 }
 
 /*
@@ -241,16 +299,14 @@ mod tests {
         assert_eq!(world.count_slots(), 4);
     }
 
-    /*
     #[test]
     fn gaucho_position() {
         let mut world = new_gauchos();
         let i = world.add_gaucho();
-        let _ = world.set_gaucho_position(i.unwrap(), [123.0, 70.0]);
+        let _ = world.set_gaucho_position(i.unwrap(), (123.0, 70.0));
         let pos = world.get_gaucho_position(i.unwrap()).unwrap();
-        assert!(pos[0] > 122.0 && pos[1] > 69.0 && pos[0] < 124.0 && pos[1] < 71.0);
+        assert!(pos.0 > 122.0 && pos.1 > 69.0 && pos.0 < 124.0 && pos.1 < 71.0);
     }
-    */
 
     /*
 
