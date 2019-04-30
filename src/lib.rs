@@ -8,6 +8,11 @@ use std::sync::Mutex;
 const MAX_GAUCHOS: usize = 8;
 const MAX_SLOTS: usize = 16;
 
+pub trait Activable {
+    fn is_active(&self) -> bool;
+    fn activate(&mut self);
+}
+
 #[derive(Copy, Clone)]
 struct Gaucho {
     active: bool,
@@ -15,11 +20,28 @@ struct Gaucho {
     y: f64,
     id: usize,
 }
+impl Activable for Gaucho {
+    fn is_active(&self) -> bool {
+        self.active
+    }
+    fn activate(&mut self) {
+        self.active = true;
+    }
+}
+
 #[derive(Copy, Clone)]
 struct Slot {
     active: bool,
     x: f64,
     y: f64,
+}
+impl Activable for Slot {
+    fn is_active(&self) -> bool {
+        self.active
+    }
+    fn activate(&mut self) {
+        self.active = true;
+    }
 }
 
 struct World {
@@ -66,26 +88,24 @@ fn count_gauchos() -> usize {
     counter
 }
 
-macro_rules! insert_object {
-    ( $e:expr ) => {{
-        match $e.iter().position(|&x| x.active == false) {
-            None => Err("No more slots"),
-            Some(index) => {
-                $e[index].active = true;
-                Ok(index)
-            }
+pub fn insert_object<T: Activable>(arr: &mut [T]) -> Result<usize, &'static str> {
+    match arr.iter().position(|x| x.is_active() == false) {
+        None => Err("No more slots"),
+        Some(index) => {
+            arr[index].activate();
+            Ok(index)
         }
-    }};
+    }
 }
 
 pub fn add_gaucho() -> Result<usize, &'static str> {
-    let mut world = WORLD.lock().unwrap();
-    insert_object!(world.gauchos)
+    let gauchos = &mut WORLD.lock().unwrap().gauchos;
+    insert_object(gauchos)
 }
 
 pub fn add_slot() -> Result<usize, &'static str> {
-    let mut world = WORLD.lock().unwrap();
-    insert_object!(world.slots)
+    let slots = &mut WORLD.lock().unwrap().slots;
+    insert_object(slots)
 }
 
 macro_rules! get_active_objects_indices {
