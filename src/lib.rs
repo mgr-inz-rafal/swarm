@@ -15,13 +15,10 @@ pub trait Activable {
 }
 
 #[derive(Copy, Clone)]
-struct Gaucho {
+pub struct Activator {
     active: bool,
-    x: f64,
-    y: f64,
-    id: usize,
 }
-impl Activable for Gaucho {
+impl Activable for Activator {
     fn is_active(&self) -> bool {
         self.active
     }
@@ -33,21 +30,39 @@ impl Activable for Gaucho {
     }
 }
 
+pub trait HasActivator {
+    fn get_activator(&self) -> &Activator;
+    fn get_activator_mut(&mut self) -> &mut Activator;
+}
+
+#[derive(Copy, Clone)]
+struct Gaucho {
+    activator: Activator,
+    x: f64,
+    y: f64,
+    id: usize,
+}
+impl HasActivator for Gaucho {
+    fn get_activator_mut(&mut self) -> &mut Activator {
+        &mut self.activator
+    }
+    fn get_activator(&self) -> &Activator {
+        &self.activator
+    }
+}
+
 #[derive(Copy, Clone)]
 struct Slot {
-    active: bool,
+    activator: Activator,
     x: f64,
     y: f64,
 }
-impl Activable for Slot {
-    fn is_active(&self) -> bool {
-        self.active
+impl HasActivator for Slot {
+    fn get_activator_mut(&mut self) -> &mut Activator {
+        &mut self.activator
     }
-    fn activate(&mut self) {
-        self.active = true;
-    }
-    fn deactivate(&mut self) {
-        self.active = false;
+    fn get_activator(&self) -> &Activator {
+        &self.activator
     }
 }
 
@@ -56,8 +71,9 @@ struct World {
     slots: [Slot; MAX_SLOTS],
 }
 
-pub fn clear_objects<T: Activable>(arr: &mut [T]) {
-    arr.iter_mut().for_each(|mut x| x.deactivate());
+pub fn clear_objects<T: HasActivator>(arr: &mut [T]) {
+    arr.iter_mut()
+        .for_each(|x| x.get_activator_mut().deactivate());
 }
 
 impl World {
@@ -70,13 +86,13 @@ impl World {
 lazy_static! {
     static ref WORLD: Mutex<World> = Mutex::new(World {
         gauchos: [Gaucho {
-            active: false,
+            activator: Activator { active: false },
             x: 0.0,
             y: 0.0,
             id: 666
         }; MAX_GAUCHOS],
         slots: [Slot {
-            active: false,
+            activator: Activator { active: false },
             x: 0.0,
             y: 0.0,
         }; MAX_SLOTS],
@@ -86,18 +102,21 @@ lazy_static! {
 fn count_gauchos() -> usize {
     let mut counter = 0;
     WORLD.lock().unwrap().gauchos.iter().for_each(|&x| {
-        if x.active {
+        if x.get_activator().is_active() {
             counter += 1;
         }
     });
     counter
 }
 
-pub fn insert_object<T: Activable>(arr: &mut [T]) -> Result<usize, &'static str> {
-    match arr.iter().position(|x| x.is_active() == false) {
+pub fn insert_object<T: HasActivator>(arr: &mut [T]) -> Result<usize, &'static str> {
+    match arr
+        .iter()
+        .position(|x| x.get_activator().is_active() == false)
+    {
         None => Err("No more slots"),
         Some(index) => {
-            arr[index].activate();
+            arr[index].get_activator_mut().activate();
             Ok(index)
         }
     }
@@ -113,10 +132,10 @@ pub fn add_slot() -> Result<usize, &'static str> {
     insert_object(slots)
 }
 
-fn get_active_objects_indices<T: Activable>(arr: &[T]) -> Vec<usize> {
+fn get_active_objects_indices<T: HasActivator>(arr: &[T]) -> Vec<usize> {
     let mut ret = Vec::new();
     arr.iter()
-        .positions(|x| x.is_active())
+        .positions(|x| x.get_activator().is_active())
         .for_each(|x| ret.push(x));
     ret
 }
@@ -137,7 +156,7 @@ macro_rules! get_object_position {
             return Err("Index out of bounds");
         }
         let obj = $e[$i_index];
-        if !obj.active {
+        if !obj.get_activator().is_active() {
             Err("No object with requested index")
         } else {
             Ok([obj.x, obj.y])
@@ -161,7 +180,7 @@ macro_rules! set_object_position {
             return Err("Index out of bounds");
         }
         let obj = &mut $e[$i_index];
-        if !obj.active {
+        if !obj.get_activator().is_active() {
             Err("No object with requested index")
         } else {
             obj.x = $i_pos[0];
