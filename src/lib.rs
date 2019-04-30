@@ -193,83 +193,36 @@ impl World {
 
         Ok(World::get_object_position(&mut self.gauchos[index]))
     }
-}
 
-/*
-fn get_active_objects_indices<T: HasActivator>(arr: &[T]) -> Vec<usize> {
-    let mut ret = Vec::new();
-    arr.iter()
-        .positions(|x| x.get_activator().is_active())
-        .for_each(|x| ret.push(x));
-    ret
-}
-
-pub fn get_active_gauchos_indices(world: &World) -> Vec<usize> {
-    let gauchos = world.gauchos;
-    get_active_objects_indices(&gauchos)
-}
-*/
-
-/*
-pub fn get_active_slots_indices() -> Vec<usize> {
-    let slots = &WORLD.lock().unwrap().slots;
-    get_active_objects_indices(slots)
-}
-*/
-
-/*
-macro_rules! get_object_position {
-    ( $e:expr, $i_index: ident, $i_max: ident ) => {{
-        if $i_index >= $i_max {
+    pub fn set_slot_position(
+        &mut self,
+        index: usize,
+        position: (f64, f64),
+    ) -> Result<(), &'static str> {
+        // TODO: Copy & pasted prelude to function
+        if index >= MAX_SLOTS {
             return Err("Index out of bounds");
         }
-        let obj = $e[$i_index];
-        if !obj.get_activator().is_active() {
-            Err("No object with requested index")
-        } else {
-            Ok([obj.x, obj.y])
+        if !self.slots[index].get_activator().is_active() {
+            return Err("No such slot");
         }
-    }};
-}
 
-pub fn get_gaucho_position(index: usize) -> Result<[f64; 2], &'static str> {
-    let g = WORLD.lock().unwrap().gauchos;
-    get_object_position!(g, index, MAX_GAUCHOS)
-}
+        World::set_object_position(&mut self.slots[index], position);
+        Ok(())
+    }
 
-pub fn get_slot_position(index: usize) -> Result<[f64; 2], &'static str> {
-    let s = WORLD.lock().unwrap().slots;
-    get_object_position!(s, index, MAX_GAUCHOS)
-}
-*/
-
-/*
-macro_rules! set_object_position {
-    ( $e:expr, $i_index: ident, $i_pos: ident, $i_max: ident ) => {{
-        if $i_index >= $i_max {
+    pub fn get_slot_position(&mut self, index: usize) -> Result<(f64, f64), &'static str> {
+        // TODO: Copy & pasted prelude to function
+        if index >= MAX_SLOTS {
             return Err("Index out of bounds");
         }
-        let obj = &mut $e[$i_index];
-        if !obj.get_activator().is_active() {
-            Err("No object with requested index")
-        } else {
-            obj.x = $i_pos[0];
-            obj.y = $i_pos[1];
-            Ok(())
+        if !self.slots[index].get_activator().is_active() {
+            return Err("No such slot");
         }
-    }};
-}
 
-pub fn set_gaucho_position(index: usize, pos: [f64; 2]) -> Result<(), &'static str> {
-    let world = &mut WORLD.lock().unwrap();
-    set_object_position!(world.gauchos, index, pos, MAX_GAUCHOS)
+        Ok(World::get_object_position(&mut self.slots[index]))
+    }
 }
-
-pub fn set_slot_position(index: usize, pos: [f64; 2]) -> Result<(), &'static str> {
-    let world = &mut WORLD.lock().unwrap();
-    set_object_position!(world.slots, index, pos, MAX_SLOTS)
-}
-*/
 
 #[cfg(test)]
 mod tests {
@@ -308,34 +261,12 @@ mod tests {
         assert!(pos.0 > 122.0 && pos.1 > 69.0 && pos.0 < 124.0 && pos.1 < 71.0);
     }
 
-    /*
-
     #[test]
     fn slot_position() {
-        WORLD.lock().unwrap().reset();
-        let i = add_slot();
-        let _ = set_slot_position(i.unwrap(), [50.0, 150.0]);
-        let pos = get_slot_position(i.unwrap()).unwrap();
-        assert!(pos[0] > 49.0 && pos[1] > 51.0 && pos[0] < 149.0 && pos[1] < 151.0);
+        let mut world = new_gauchos();
+        let i = world.add_slot();
+        let _ = world.set_slot_position(i.unwrap(), (50.0, 150.0));
+        let pos = world.get_slot_position(i.unwrap()).unwrap();
+        assert!(pos.0 > 49.0 && pos.1 > 51.0 && pos.0 < 149.0 && pos.1 < 151.0);
     }
-
-    #[test]
-    fn count_active_gauchos() {
-        WORLD.lock().unwrap().reset();
-        let _ = add_gaucho();
-        let _ = add_gaucho();
-        let _ = add_gaucho();
-        assert_eq!(get_active_gauchos_indices().len(), 3);
-    }
-
-    #[test]
-    fn count_active_slots() {
-        WORLD.lock().unwrap().reset();
-        let _ = add_slot();
-        let _ = add_slot();
-        let _ = add_slot();
-        let _ = add_slot();
-        assert_eq!(get_active_slots_indices().len(), 4);
-    }
-    */
 }
