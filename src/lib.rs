@@ -1,3 +1,21 @@
+#[macro_export]
+macro_rules! gaucho {
+    ($x: expr, $y: expr) => {
+        Gaucho {
+            pos: gauchos::Position { x: $x, y: $y },
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! slot {
+    ($x: expr, $y: expr) => {
+        Slot {
+            pos: gauchos::Position { x: $x, y: $y },
+        }
+    };
+}
+
 #[derive(Copy, Clone)]
 pub struct Position {
     pub x: f64,
