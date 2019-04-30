@@ -1,31 +1,31 @@
 #[derive(Copy, Clone)]
 pub struct Position {
-    x: f64,
-    y: f64,
+    pub x: f64,
+    pub y: f64,
 }
 
 #[derive(Copy, Clone)]
 pub struct Gaucho {
-    pos: Position,
+    pub pos: Position,
 }
 
 #[derive(Copy, Clone)]
 pub struct Slot {
-    position: Position,
+    pub pos: Position,
 }
 
-pub struct World {
-    gauchos: Vec<Gaucho>,
-    slots: Vec<Slot>,
+pub struct Gauchos {
+    pub gauchos: Vec<Gaucho>,
+    pub slots: Vec<Slot>,
 }
 
-pub fn new_gauchos() -> World {
-    World::new()
+pub fn new() -> Gauchos {
+    Gauchos::new()
 }
 
-impl World {
-    fn new() -> World {
-        World {
+impl Gauchos {
+    fn new() -> Gauchos {
+        Gauchos {
             gauchos: Vec::new(),
             slots: Vec::new(),
         }
@@ -36,11 +36,15 @@ impl World {
     }
 
     pub fn add_gaucho(&mut self, gaucho: Gaucho) {
-        World::add_object(&mut self.gauchos, gaucho);
+        Gauchos::add_object(&mut self.gauchos, gaucho);
+    }
+
+    pub fn get_gauchos(&self) -> &Vec<Gaucho> {
+        &self.gauchos
     }
 
     pub fn add_slot(&mut self, slot: Slot) {
-        World::add_object(&mut self.slots, slot);
+        Gauchos::add_object(&mut self.slots, slot);
     }
 }
 
