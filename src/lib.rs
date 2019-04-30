@@ -34,6 +34,18 @@ pub trait HasActivator {
     fn get_activator(&self) -> &Activator;
     fn get_activator_mut(&mut self) -> &mut Activator;
 }
+macro_rules! impl_HasActivator {
+    ( for $($type:ty),+ ) => {
+        $(impl HasActivator for $type {
+            fn get_activator_mut(&mut self) -> &mut Activator {
+                &mut self.activator
+            }
+            fn get_activator(&self) -> &Activator {
+                &self.activator
+            }
+        })*
+    };
+}
 
 #[derive(Copy, Clone)]
 struct Gaucho {
@@ -42,29 +54,13 @@ struct Gaucho {
     y: f64,
     id: usize,
 }
-impl HasActivator for Gaucho {
-    fn get_activator_mut(&mut self) -> &mut Activator {
-        &mut self.activator
-    }
-    fn get_activator(&self) -> &Activator {
-        &self.activator
-    }
-}
-
 #[derive(Copy, Clone)]
 struct Slot {
     activator: Activator,
     x: f64,
     y: f64,
 }
-impl HasActivator for Slot {
-    fn get_activator_mut(&mut self) -> &mut Activator {
-        &mut self.activator
-    }
-    fn get_activator(&self) -> &Activator {
-        &self.activator
-    }
-}
+impl_HasActivator!(for Gaucho, Slot);
 
 struct World {
     gauchos: [Gaucho; MAX_GAUCHOS],
