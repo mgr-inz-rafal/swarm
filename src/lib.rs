@@ -7,24 +7,30 @@ use tools::Position;
 #[macro_export]
 macro_rules! carrier {
     ($x: expr, $y: expr) => {
-        Carrier {
-            pos: swarm::tools::Position { x: $x, y: $y },
-        }
+        Carrier::new($x, $y)
     };
 }
 
 #[macro_export]
 macro_rules! slot {
     ($x: expr, $y: expr) => {
-        Slot {
-            pos: swarm::tools::Position { x: $x, y: $y },
-        }
+        Slot::new($x, $y)
     };
 }
 
 #[derive(Copy, Clone)]
 pub struct Slot {
-    pub pos: Position,
+    pos: Position,
+}
+impl Slot {
+    pub fn new(x: f64, y: f64) -> Slot {
+        Slot {
+            pos: Position::new(x, y),
+        }
+    }
+    pub fn get_position(&self) -> &Position {
+        &self.pos
+    }
 }
 
 pub struct Swarm {
