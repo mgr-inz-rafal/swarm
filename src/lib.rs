@@ -1,8 +1,8 @@
 #[macro_export]
-macro_rules! bronco {
+macro_rules! carrier {
     ($x: expr, $y: expr) => {
-        Bronco {
-            pos: gauchos::Position { x: $x, y: $y },
+        Carrier {
+            pos: swarm::Position { x: $x, y: $y },
         }
     };
 }
@@ -11,7 +11,7 @@ macro_rules! bronco {
 macro_rules! slot {
     ($x: expr, $y: expr) => {
         Slot {
-            pos: gauchos::Position { x: $x, y: $y },
+            pos: swarm::Position { x: $x, y: $y },
         }
     };
 }
@@ -23,7 +23,7 @@ pub struct Position {
 }
 
 #[derive(Copy, Clone)]
-pub struct Bronco {
+pub struct Carrier {
     pub pos: Position,
 }
 
@@ -32,19 +32,19 @@ pub struct Slot {
     pub pos: Position,
 }
 
-pub struct Gauchos {
-    pub broncos: Vec<Bronco>,
+pub struct Swarm {
+    pub carriers: Vec<Carrier>,
     pub slots: Vec<Slot>,
 }
 
-pub fn new() -> Gauchos {
-    Gauchos::new()
+pub fn new() -> Swarm {
+    Swarm::new()
 }
 
-impl Gauchos {
-    fn new() -> Gauchos {
-        Gauchos {
-            broncos: Vec::new(),
+impl Swarm {
+    fn new() -> Swarm {
+        Swarm {
+            carriers: Vec::new(),
             slots: Vec::new(),
         }
     }
@@ -53,16 +53,16 @@ impl Gauchos {
         vec.push(obj);
     }
 
-    pub fn add_bronco(&mut self, bronco: Bronco) {
-        Gauchos::add_object(&mut self.broncos, bronco);
+    pub fn add_carrier(&mut self, carrier: Carrier) {
+        Swarm::add_object(&mut self.carriers, carrier);
     }
 
-    pub fn get_broncos(&self) -> &Vec<Bronco> {
-        &self.broncos
+    pub fn get_carriers(&self) -> &Vec<Carrier> {
+        &self.carriers
     }
 
     pub fn add_slot(&mut self, slot: Slot) {
-        Gauchos::add_object(&mut self.slots, slot);
+        Swarm::add_object(&mut self.slots, slot);
     }
 }
 
@@ -71,7 +71,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn broncos_count_zero() {
+    fn carriers_count_zero() {
         assert_eq!(0, 0);
     }
 }
