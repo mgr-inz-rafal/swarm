@@ -69,6 +69,10 @@ impl Swarm {
     pub fn add_slot(&mut self, slot: Slot) {
         Swarm::add_object(&mut self.slots, slot);
     }
+
+    pub fn tick(&mut self) {
+        self.carriers.iter_mut().for_each(|mut x| x.tick());
+    }
 }
 
 #[cfg(test)]
