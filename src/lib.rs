@@ -33,8 +33,8 @@ pub struct Slot {
 }
 
 pub struct Swarm {
-    pub carriers: Vec<Carrier>,
-    pub slots: Vec<Slot>,
+    carriers: Vec<Carrier>,
+    slots: Vec<Slot>,
 }
 
 pub fn new() -> Swarm {
@@ -55,6 +55,14 @@ impl Swarm {
 
     pub fn add_carrier(&mut self, carrier: Carrier) {
         Swarm::add_object(&mut self.carriers, carrier);
+    }
+
+    pub fn get_carriers(&self) -> &Vec<Carrier> {
+        &self.carriers
+    }
+
+    pub fn get_slots(&self) -> &Vec<Slot> {
+        &self.slots
     }
 
     pub fn add_slot(&mut self, slot: Slot) {
