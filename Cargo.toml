@@ -1,5 +1,5 @@
 [package]
-name = "gauchos"
+name = "swarm"
 version = "0.1.0"
 authors = ["mgr-inz-rafal <rchabowski@gmail.com>"]
 edition = "2018"
