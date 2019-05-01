@@ -57,10 +57,6 @@ impl Swarm {
         Swarm::add_object(&mut self.carriers, carrier);
     }
 
-    pub fn get_carriers(&self) -> &Vec<Carrier> {
-        &self.carriers
-    }
-
     pub fn add_slot(&mut self, slot: Slot) {
         Swarm::add_object(&mut self.slots, slot);
     }
