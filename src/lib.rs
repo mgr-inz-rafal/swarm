@@ -1,5 +1,5 @@
-mod carrier;
-mod tools;
+pub mod carrier;
+pub mod tools;
 
 use carrier::Carrier;
 use tools::Position;
@@ -8,7 +8,7 @@ use tools::Position;
 macro_rules! carrier {
     ($x: expr, $y: expr) => {
         Carrier {
-            pos: swarm::Position { x: $x, y: $y },
+            pos: swarm::tools::Position { x: $x, y: $y },
         }
     };
 }
@@ -17,7 +17,7 @@ macro_rules! carrier {
 macro_rules! slot {
     ($x: expr, $y: expr) => {
         Slot {
-            pos: swarm::Position { x: $x, y: $y },
+            pos: swarm::tools::Position { x: $x, y: $y },
         }
     };
 }
