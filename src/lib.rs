@@ -1,3 +1,9 @@
+mod carrier;
+mod tools;
+
+use carrier::Carrier;
+use tools::Position;
+
 #[macro_export]
 macro_rules! carrier {
     ($x: expr, $y: expr) => {
@@ -14,17 +20,6 @@ macro_rules! slot {
             pos: swarm::Position { x: $x, y: $y },
         }
     };
-}
-
-#[derive(Copy, Clone)]
-pub struct Position {
-    pub x: f64,
-    pub y: f64,
-}
-
-#[derive(Copy, Clone)]
-pub struct Carrier {
-    pub pos: Position,
 }
 
 #[derive(Copy, Clone)]
