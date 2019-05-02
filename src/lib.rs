@@ -71,7 +71,7 @@ impl Swarm {
     }
 
     pub fn tick(&mut self) {
-        self.carriers.iter_mut().for_each(|mut x| x.tick());
+        self.carriers.iter_mut().for_each(|x| x.tick());
     }
 }
 
