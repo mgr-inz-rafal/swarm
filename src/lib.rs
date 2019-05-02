@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate approx;
+
 #[macro_export]
 macro_rules! carrier {
     ($x: expr, $y: expr) => {
@@ -11,6 +14,8 @@ macro_rules! slot {
         Slot::new($x, $y)
     };
 }
+
+const ANGLE_INCREMENT: f64 = 0.1;
 
 #[derive(Copy, Clone)]
 pub struct Slot {
@@ -30,12 +35,12 @@ impl Slot {
 struct Dispatcher {}
 impl Dispatcher {
     fn conduct(carriers: &mut Vec<Carrier>) {
-        let mut carrier = carriers[0];
+        let carrier = &mut carriers[0];
         match carrier.state {
-            _ => {}
             State::IDLE => {
                 carrier.state = State::TARGETING((300.0, 300.0));
             }
+            _ => {}
         }
     }
 }
@@ -43,7 +48,6 @@ impl Dispatcher {
 pub struct Swarm {
     carriers: Vec<Carrier>,
     slots: Vec<Slot>,
-    dispatcher: Dispatcher,
 }
 
 pub fn new() -> Swarm {
@@ -55,7 +59,6 @@ impl Swarm {
         Swarm {
             carriers: Vec::new(),
             slots: Vec::new(),
-            dispatcher: Dispatcher {},
         }
     }
 
@@ -85,11 +88,12 @@ impl Swarm {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum State {
     IDLE,
     TARGETING((f64, f64)),
     MOVING,
+    _DEBUG_,
 }
 
 #[derive(Copy, Clone)]
@@ -108,6 +112,22 @@ impl Carrier {
         }
     }
 
+    fn calculate_angle_to(&self, target: (f64, f64)) -> f64 {
+        let mut angle = (target.0 - self.pos.x).atan2(target.1 - self.pos.y);
+        if angle < 0.0
+        {
+            angle += std::f64::consts::PI * 2.0;
+        }
+        angle
+    }
+
+    fn rotate_to(&mut self, target_angle: f64) {
+        self.angle += ANGLE_INCREMENT;
+        if self.angle > std::f64::consts::PI * 2.0 {
+            self.angle = self.angle - std::f64::consts::PI * 2.0;
+        }
+    }
+
     pub fn get_position(&self) -> &Position {
         &self.pos
     }
@@ -121,13 +141,26 @@ impl Carrier {
     }
 
     pub fn tick(&mut self) {
+        match self.state {
+            State::TARGETING(target) => {
+                let target_angle = self.calculate_angle_to(target);
+
+                println!("{}, {}, {}", self.angle, target_angle, ulps_eq!(target_angle, self.angle));
+
+                if !relative_eq!(target_angle, self.angle, epsilon = ANGLE_INCREMENT * 1.2) {
+                    self.rotate_to(target_angle)
+                } else {
+                    self.state = State::_DEBUG_;
+                }
+            }
+            _ => {}
+        }
         /*
         self.pos.x = self.pos.x + self.angle.cos();
         self.pos.y = self.pos.y + self.angle.sin();
         self.angle += 0.01
         */
     }
-    
 }
 
 #[derive(Copy, Clone)]
