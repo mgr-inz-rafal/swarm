@@ -120,7 +120,7 @@ impl Carrier {
     }
 
     fn calculate_angle_to(&self, target: (f64, f64)) -> f64 {
-        let mut angle = (target.0 - self.pos.x).atan2(target.1 - self.pos.y);
+        let mut angle = (target.1 - self.pos.y).atan2(target.0 - self.pos.x);
         if angle < 0.0 {
             angle += std::f64::consts::PI * 2.0;
         }
