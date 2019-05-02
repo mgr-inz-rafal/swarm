@@ -38,7 +38,7 @@ impl Dispatcher {
         let carrier = &mut carriers[0];
         match carrier.state {
             State::IDLE => {
-                carrier.state = State::TARGETING((300.0, 300.0));
+                carrier.state = State::TARGETING((200.0, 500.0));
             }
             _ => {}
         }
@@ -112,10 +112,16 @@ impl Carrier {
         }
     }
 
+    pub fn get_target(&self) -> Option<(f64, f64)> {
+        match self.state {
+            State::TARGETING(target) => Some(target),
+            _ => None,
+        }
+    }
+
     fn calculate_angle_to(&self, target: (f64, f64)) -> f64 {
         let mut angle = (target.0 - self.pos.x).atan2(target.1 - self.pos.y);
-        if angle < 0.0
-        {
+        if angle < 0.0 {
             angle += std::f64::consts::PI * 2.0;
         }
         angle
@@ -145,7 +151,12 @@ impl Carrier {
             State::TARGETING(target) => {
                 let target_angle = self.calculate_angle_to(target);
 
-                println!("{}, {}, {}", self.angle, target_angle, ulps_eq!(target_angle, self.angle));
+                println!(
+                    "{}, {}, {}",
+                    self.angle,
+                    target_angle,
+                    ulps_eq!(target_angle, self.angle)
+                );
 
                 if !relative_eq!(target_angle, self.angle, epsilon = ANGLE_INCREMENT * 1.2) {
                     self.rotate_to(target_angle)
