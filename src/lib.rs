@@ -10,8 +10,8 @@ macro_rules! carrier {
 
 #[macro_export]
 macro_rules! slot {
-    ($x: expr, $y: expr) => {
-        Slot::new($x, $y)
+    ($x: expr, $y: expr, $cp: expr, $tp: expr) => {
+        Slot::new($x, $y, $cp, $tp)
     };
 }
 
@@ -22,15 +22,28 @@ const POSITION_EQUALITY_EPSILON: f64 = SPEED_FACTOR * 1.5;
 #[derive(Copy, Clone)]
 pub struct Slot {
     pos: Position,
+    current_payload: Option<char>,
+    target_payload: Option<char>,
 }
 impl Slot {
-    pub fn new(x: f64, y: f64) -> Slot {
+    pub fn new(
+        x: f64,
+        y: f64,
+        current_payload: Option<char>,
+        target_payload: Option<char>,
+    ) -> Slot {
         Slot {
             pos: Position::new(x, y),
+            current_payload,
+            target_payload,
         }
     }
     pub fn get_position(&self) -> &Position {
         &self.pos
+    }
+
+    pub fn get_payloads(&self) -> (Option<char>, Option<char>) {
+        (self.current_payload, self.target_payload)
     }
 }
 
@@ -41,6 +54,13 @@ impl Dispatcher {
         match carrier.state {
             State::IDLE => {
                 carrier.state = State::TARGETING((200.0, 500.0));
+            }
+            _ => {}
+        }
+        let carrier = &mut carriers[1];
+        match carrier.state {
+            State::IDLE => {
+                carrier.state = State::TARGETING((500.0, 200.0));
             }
             _ => {}
         }
