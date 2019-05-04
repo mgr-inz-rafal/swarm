@@ -42,8 +42,8 @@ impl Slot {
         &self.pos
     }
 
-    pub fn get_payloads(&self) -> (Option<char>, Option<char>) {
-        (self.current_payload, self.target_payload)
+    pub fn get_payloads(&self) -> [Option<char>; 2] {
+        [self.current_payload, self.target_payload]
     }
 }
 
