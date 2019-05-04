@@ -15,7 +15,8 @@ macro_rules! slot {
     };
 }
 
-const ANGLE_INCREMENT: f64 = 0.1;
+const ANGLE_INCREMENT: f64 = 0.05;
+const SPEED_FACTOR: f64 = 2.0;
 
 #[derive(Copy, Clone)]
 pub struct Slot {
@@ -92,7 +93,7 @@ impl Swarm {
 pub enum State {
     IDLE,
     TARGETING((f64, f64)),
-    MOVING,
+    MOVING((f64, f64)),
     _DEBUG_,
 }
 
@@ -115,6 +116,7 @@ impl Carrier {
     pub fn get_target(&self) -> Option<(f64, f64)> {
         match self.state {
             State::TARGETING(target) => Some(target),
+            State::MOVING(target) => Some(target),
             _ => None,
         }
     }
@@ -134,6 +136,11 @@ impl Carrier {
         }
     }
 
+    fn move_forward(&mut self) {
+        self.pos.x = self.pos.x + self.angle.cos() * SPEED_FACTOR;
+        self.pos.y = self.pos.y + self.angle.sin() * SPEED_FACTOR;
+    }
+
     pub fn get_position(&self) -> &Position {
         &self.pos
     }
@@ -151,26 +158,18 @@ impl Carrier {
             State::TARGETING(target) => {
                 let target_angle = self.calculate_angle_to(target);
 
-                println!(
-                    "{}, {}, {}",
-                    self.angle,
-                    target_angle,
-                    ulps_eq!(target_angle, self.angle)
-                );
-
                 if !relative_eq!(target_angle, self.angle, epsilon = ANGLE_INCREMENT * 1.2) {
                     self.rotate_to(target_angle)
                 } else {
-                    self.state = State::_DEBUG_;
+                    self.angle = target_angle;
+                    self.state = State::MOVING(target);
                 }
+            }
+            State::MOVING(_) => {
+                self.move_forward();
             }
             _ => {}
         }
-        /*
-        self.pos.x = self.pos.x + self.angle.cos();
-        self.pos.y = self.pos.y + self.angle.sin();
-        self.angle += 0.01
-        */
     }
 }
 
