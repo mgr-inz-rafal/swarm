@@ -17,6 +17,7 @@ macro_rules! slot {
 
 const ANGLE_INCREMENT: f64 = 0.05;
 const SPEED_FACTOR: f64 = 2.0;
+const POSITION_EQUALITY_EPSILON: f64 = SPEED_FACTOR * 1.5;
 
 #[derive(Copy, Clone)]
 pub struct Slot {
@@ -136,9 +137,15 @@ impl Carrier {
         }
     }
 
-    fn move_forward(&mut self) {
+    fn close_enough(&self, target: (f64, f64)) -> bool {
+        ((self.pos.x - target.0).powf(2.0) + (self.pos.y - target.1).powf(2.0)).sqrt()
+            < POSITION_EQUALITY_EPSILON
+    }
+
+    fn move_forward(&mut self, target: (f64, f64)) -> bool {
         self.pos.x = self.pos.x + self.angle.cos() * SPEED_FACTOR;
         self.pos.y = self.pos.y + self.angle.sin() * SPEED_FACTOR;
+        self.close_enough(target)
     }
 
     pub fn get_position(&self) -> &Position {
@@ -165,8 +172,10 @@ impl Carrier {
                     self.state = State::MOVING(target);
                 }
             }
-            State::MOVING(_) => {
-                self.move_forward();
+            State::MOVING(target) => {
+                if self.move_forward(target) {
+                    self.state = State::_DEBUG_;
+                }
             }
             _ => {}
         }
