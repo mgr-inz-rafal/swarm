@@ -50,17 +50,16 @@ impl Slot {
 struct Dispatcher {}
 impl Dispatcher {
     fn conduct(carriers: &mut Vec<Carrier>, slots: &Vec<Slot>) {
-        let carrier = &mut carriers[0];
-        match carrier.state {
+        carriers.iter_mut().for_each(|mut x| match x.state {
             State::IDLE => {
                 let slot = Dispatcher::find_mismatched_slot(slots);
                 match slot {
-                    Some(slot) => carrier.state = State::TARGETING(slots[0]),
+                    Some(slot) => x.state = State::TARGETING(slots[0]),
                     None => {}
                 }
             }
             _ => {}
-        }
+        })
     }
 
     fn find_mismatched_slot(slots: &Vec<Slot>) -> Option<&Slot> {
