@@ -52,6 +52,7 @@ impl Dispatcher {
     fn conduct(carriers: &mut Vec<Carrier>, slots: &Vec<Slot>) {
         carriers.iter_mut().for_each(|mut x| match x.state {
             State::IDLE => {
+                // TODO: Once found, mark slot as "taken_care_of"
                 let slot = Dispatcher::find_mismatched_slot(slots);
                 match slot {
                     Some(slot) => x.state = State::TARGETING(slots[0]),
