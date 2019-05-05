@@ -24,6 +24,7 @@ pub struct Slot {
     pos: Position,
     current_payload: Option<char>,
     target_payload: Option<char>,
+    taken_care_of: bool,
 }
 impl Slot {
     pub fn new(
@@ -36,6 +37,7 @@ impl Slot {
             pos: Position::new(x, y),
             current_payload,
             target_payload,
+            taken_care_of: false,
         }
     }
     pub fn get_position(&self) -> &Position {
@@ -49,24 +51,23 @@ impl Slot {
 
 struct Dispatcher {}
 impl Dispatcher {
-    fn conduct(carriers: &mut Vec<Carrier>, slots: &Vec<Slot>) {
+    fn conduct(carriers: &mut Vec<Carrier>, slots: &mut Vec<Slot>) {
         carriers.iter_mut().for_each(|mut x| match x.state {
-            State::IDLE => {
-                // TODO: Once found, mark slot as "taken_care_of"
-                let slot = Dispatcher::find_mismatched_slot(slots);
-                match slot {
-                    Some(slot) => x.state = State::TARGETING(slots[0]),
-                    None => {}
+            State::IDLE => match Dispatcher::find_mismatched_slot(slots) {
+                Some(slot) => {
+                    x.state = State::TARGETING(*slot);
+                    slot.taken_care_of = true;
                 }
-            }
+                None => {}
+            },
             _ => {}
         })
     }
 
-    fn find_mismatched_slot(slots: &Vec<Slot>) -> Option<&Slot> {
+    fn find_mismatched_slot(slots: &mut Vec<Slot>) -> Option<&mut Slot> {
         slots
-            .iter()
-            .find(|&x| x.current_payload != x.target_payload)
+            .iter_mut()
+            .find(|x| x.current_payload != x.target_payload && !x.taken_care_of)
     }
 }
 
@@ -108,7 +109,7 @@ impl Swarm {
     }
 
     pub fn tick(&mut self) {
-        Dispatcher::conduct(&mut self.carriers, &self.slots);
+        Dispatcher::conduct(&mut self.carriers, &mut self.slots);
         self.carriers.iter_mut().for_each(|x| x.tick());
     }
 }
