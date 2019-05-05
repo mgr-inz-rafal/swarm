@@ -49,18 +49,18 @@ impl Slot {
 
 struct Dispatcher {}
 impl Dispatcher {
-    fn conduct(carriers: &mut Vec<Carrier>) {
+    fn conduct(carriers: &mut Vec<Carrier>, slots: &Vec<Slot>) {
         let carrier = &mut carriers[0];
         match carrier.state {
             State::IDLE => {
-                carrier.state = State::TARGETING((200.0, 500.0));
+                carrier.state = State::TARGETING(slots[0]);
             }
             _ => {}
         }
         let carrier = &mut carriers[1];
         match carrier.state {
             State::IDLE => {
-                carrier.state = State::TARGETING((500.0, 200.0));
+                carrier.state = State::TARGETING(slots[1]);
             }
             _ => {}
         }
@@ -105,16 +105,16 @@ impl Swarm {
     }
 
     pub fn tick(&mut self) {
-        Dispatcher::conduct(&mut self.carriers);
+        Dispatcher::conduct(&mut self.carriers, &self.slots);
         self.carriers.iter_mut().for_each(|x| x.tick());
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone)]
 pub enum State {
     IDLE,
-    TARGETING((f64, f64)),
-    MOVING((f64, f64)),
+    TARGETING(Slot),
+    MOVING(Slot),
     _DEBUG_,
 }
 
@@ -134,7 +134,7 @@ impl Carrier {
         }
     }
 
-    pub fn get_target(&self) -> Option<(f64, f64)> {
+    pub fn get_target(&self) -> Option<Slot> {
         match self.state {
             State::TARGETING(target) => Some(target),
             State::MOVING(target) => Some(target),
@@ -142,7 +142,7 @@ impl Carrier {
         }
     }
 
-    fn calculate_angle_to(&self, target: (f64, f64)) -> f64 {
+    fn calculate_angle_to_point(&self, target: (f64, f64)) -> f64 {
         let mut angle = (target.1 - self.pos.y).atan2(target.0 - self.pos.x);
         if angle < 0.0 {
             angle += std::f64::consts::PI * 2.0;
@@ -162,7 +162,7 @@ impl Carrier {
             < POSITION_EQUALITY_EPSILON
     }
 
-    fn move_forward(&mut self, target: (f64, f64)) -> bool {
+    fn move_forward_to_point(&mut self, target: (f64, f64)) -> bool {
         self.pos.x = self.pos.x + self.angle.cos() * SPEED_FACTOR;
         self.pos.y = self.pos.y + self.angle.sin() * SPEED_FACTOR;
         self.close_enough(target)
@@ -183,7 +183,8 @@ impl Carrier {
     pub fn tick(&mut self) {
         match self.state {
             State::TARGETING(target) => {
-                let target_angle = self.calculate_angle_to(target);
+                let target_pos = target.get_position();
+                let target_angle = self.calculate_angle_to_point((target_pos.x, target_pos.y));
 
                 if !relative_eq!(target_angle, self.angle, epsilon = ANGLE_INCREMENT * 1.2) {
                     self.rotate_to(target_angle)
@@ -193,7 +194,8 @@ impl Carrier {
                 }
             }
             State::MOVING(target) => {
-                if self.move_forward(target) {
+                let target_pos = target.get_position();
+                if self.move_forward_to_point((target_pos.x, target_pos.y)) {
                     self.state = State::_DEBUG_;
                 }
             }
