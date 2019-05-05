@@ -53,17 +53,20 @@ impl Dispatcher {
         let carrier = &mut carriers[0];
         match carrier.state {
             State::IDLE => {
-                carrier.state = State::TARGETING(slots[0]);
+                let slot = Dispatcher::find_mismatched_slot(slots);
+                match slot {
+                    Some(slot) => carrier.state = State::TARGETING(slots[0]),
+                    None => {}
+                }
             }
             _ => {}
         }
-        let carrier = &mut carriers[1];
-        match carrier.state {
-            State::IDLE => {
-                carrier.state = State::TARGETING(slots[1]);
-            }
-            _ => {}
-        }
+    }
+
+    fn find_mismatched_slot(slots: &Vec<Slot>) -> Option<&Slot> {
+        slots
+            .iter()
+            .find(|&x| x.current_payload != x.target_payload)
     }
 }
 
