@@ -158,7 +158,7 @@ impl Carrier {
     fn rotate_to(&mut self, target_angle: f64) {
         self.angle += ANGLE_INCREMENT;
         if self.angle > std::f64::consts::PI * 2.0 {
-            self.angle = self.angle - std::f64::consts::PI * 2.0;
+            self.angle -= std::f64::consts::PI * 2.0;
         }
     }
 
@@ -168,8 +168,8 @@ impl Carrier {
     }
 
     fn move_forward_to_point(&mut self, target: (f64, f64)) -> bool {
-        self.pos.x = self.pos.x + self.angle.cos() * SPEED_FACTOR;
-        self.pos.y = self.pos.y + self.angle.sin() * SPEED_FACTOR;
+        self.pos.x += self.angle.cos() * SPEED_FACTOR;
+        self.pos.y += self.angle.sin() * SPEED_FACTOR;
         self.close_enough(target)
     }
 
