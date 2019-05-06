@@ -109,8 +109,8 @@ impl Swarm {
     }
 
     pub fn tick(&mut self) {
-        Dispatcher::conduct(&mut self.carriers, &mut self.slots);
-        let slots = &mut self.slots;
+        let mut slots = &mut self.slots;
+        Dispatcher::conduct(&mut self.carriers, &mut slots);
         self.carriers.iter_mut().for_each(|x| x.tick(slots));
     }
 }
