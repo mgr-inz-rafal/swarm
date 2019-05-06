@@ -54,9 +54,9 @@ impl Dispatcher {
     fn conduct(carriers: &mut Vec<Carrier>, slots: &mut Vec<Slot>) {
         carriers.iter_mut().for_each(|mut x| match x.state {
             State::IDLE => match Dispatcher::find_mismatched_slot(slots) {
-                Some(slot) => {
-                    x.state = State::TARGETING(*slot);
-                    slot.taken_care_of = true;
+                Some(slot_index) => {
+                    x.state = State::TARGETING(slot_index);
+                    slots[slot_index].taken_care_of = true;
                 }
                 None => {}
             },
@@ -64,10 +64,10 @@ impl Dispatcher {
         })
     }
 
-    fn find_mismatched_slot(slots: &mut Vec<Slot>) -> Option<&mut Slot> {
+    fn find_mismatched_slot(slots: &mut Vec<Slot>) -> Option<usize> {
         slots
             .iter_mut()
-            .find(|x| x.current_payload != x.target_payload && !x.taken_care_of)
+            .position(|x| x.current_payload != x.target_payload && !x.taken_care_of)
     }
 }
 
@@ -110,15 +110,16 @@ impl Swarm {
 
     pub fn tick(&mut self) {
         Dispatcher::conduct(&mut self.carriers, &mut self.slots);
-        self.carriers.iter_mut().for_each(|x| x.tick());
+        let slots = &mut self.slots;
+        self.carriers.iter_mut().for_each(|x| x.tick(slots));
     }
 }
 
 #[derive(Copy, Clone)]
 pub enum State {
     IDLE,
-    TARGETING(Slot),
-    MOVING(Slot),
+    TARGETING(usize),
+    MOVING(usize),
     _DEBUG_,
 }
 
@@ -138,10 +139,10 @@ impl Carrier {
         }
     }
 
-    pub fn get_target(&self) -> Option<Slot> {
+    pub fn get_target(&self) -> Option<usize> {
         match self.state {
-            State::TARGETING(target) => Some(target),
-            State::MOVING(target) => Some(target),
+            State::TARGETING(target_index) => Some(target_index),
+            State::MOVING(target_index) => Some(target_index),
             _ => None,
         }
     }
@@ -184,10 +185,10 @@ impl Carrier {
         self.state
     }
 
-    pub fn tick(&mut self) {
+    pub fn tick(&mut self, slots: &Vec<Slot>) {
         match self.state {
             State::TARGETING(target) => {
-                let target_pos = target.get_position();
+                let target_pos = slots[target].get_position();
                 let target_angle = self.calculate_angle_to_point((target_pos.x, target_pos.y));
 
                 if !relative_eq!(target_angle, self.angle, epsilon = ANGLE_INCREMENT * 1.2) {
@@ -198,7 +199,7 @@ impl Carrier {
                 }
             }
             State::MOVING(target) => {
-                let target_pos = target.get_position();
+                let target_pos = slots[target].get_position();
                 if self.move_forward_to_point((target_pos.x, target_pos.y)) {
                     self.state = State::_DEBUG_;
                 }
