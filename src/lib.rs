@@ -120,6 +120,7 @@ pub enum State {
     IDLE,
     TARGETING(usize),
     MOVING(usize),
+    PICKING_UP(usize),
     _DEBUG_,
 }
 
@@ -128,6 +129,7 @@ pub struct Carrier {
     pos: Position,
     angle: f64,
     state: State,
+    payload: Option<char>,
 }
 
 impl Carrier {
@@ -136,6 +138,7 @@ impl Carrier {
             pos: Position::new(x, y),
             angle: 0.0,
             state: State::IDLE,
+            payload: None,
         }
     }
 
@@ -162,7 +165,7 @@ impl Carrier {
         }
     }
 
-    fn close_enough(&self, target: (f64, f64)) -> bool {
+    fn is_close_enough(&self, target: (f64, f64)) -> bool {
         ((self.pos.x - target.0).powf(2.0) + (self.pos.y - target.1).powf(2.0)).sqrt()
             < POSITION_EQUALITY_EPSILON
     }
@@ -170,7 +173,7 @@ impl Carrier {
     fn move_forward_to_point(&mut self, target: (f64, f64)) -> bool {
         self.pos.x += self.angle.cos() * SPEED_FACTOR;
         self.pos.y += self.angle.sin() * SPEED_FACTOR;
-        self.close_enough(target)
+        self.is_close_enough(target)
     }
 
     pub fn get_position(&self) -> &Position {
@@ -185,7 +188,7 @@ impl Carrier {
         self.state
     }
 
-    pub fn tick(&mut self, slots: &Vec<Slot>) {
+    pub fn tick(&mut self, slots: &mut Vec<Slot>) {
         match self.state {
             State::TARGETING(target) => {
                 let target_pos = slots[target].get_position();
@@ -201,8 +204,13 @@ impl Carrier {
             State::MOVING(target) => {
                 let target_pos = slots[target].get_position();
                 if self.move_forward_to_point((target_pos.x, target_pos.y)) {
-                    self.state = State::_DEBUG_;
+                    self.state = State::PICKING_UP(target);
                 }
+            }
+            State::PICKING_UP(target) => {
+                self.payload = slots[target].current_payload;
+                slots[target].current_payload = None;
+                self.state = State::_DEBUG_;
             }
             _ => {}
         }
