@@ -15,6 +15,8 @@ macro_rules! slot {
     };
 }
 
+type PayloadT = char;
+
 const ANGLE_INCREMENT: f64 = 0.05;
 const SPEED_FACTOR: f64 = 2.0;
 const POSITION_EQUALITY_EPSILON: f64 = SPEED_FACTOR * 1.5;
@@ -22,16 +24,16 @@ const POSITION_EQUALITY_EPSILON: f64 = SPEED_FACTOR * 1.5;
 #[derive(Copy, Clone)]
 pub struct Slot {
     pos: Position,
-    current_payload: Option<char>,
-    target_payload: Option<char>,
+    current_payload: Option<PayloadT>,
+    target_payload: Option<PayloadT>,
     taken_care_of: bool,
 }
 impl Slot {
     pub fn new(
         x: f64,
         y: f64,
-        current_payload: Option<char>,
-        target_payload: Option<char>,
+        current_payload: Option<PayloadT>,
+        target_payload: Option<PayloadT>,
     ) -> Slot {
         Slot {
             pos: Position::new(x, y),
@@ -44,7 +46,7 @@ impl Slot {
         &self.pos
     }
 
-    pub fn get_payloads(&self) -> [Option<char>; 2] {
+    pub fn get_payloads(&self) -> [Option<PayloadT>; 2] {
         [self.current_payload, self.target_payload]
     }
 }
@@ -53,12 +55,15 @@ struct Dispatcher {}
 impl Dispatcher {
     fn conduct(carriers: &mut Vec<Carrier>, slots: &mut Vec<Slot>) {
         carriers.iter_mut().for_each(|mut x| match x.state {
-            State::IDLE => match Dispatcher::find_mismatched_slot(slots) {
-                Some(slot_index) => {
+            State::IDLE => {
+                if let Some(slot_index) = Dispatcher::find_mismatched_slot(slots) {
                     x.state = State::TARGETING(slot_index);
                     slots[slot_index].taken_care_of = true;
                 }
-                None => {}
+            }
+            State::LOOKINGFORTARGET => match Dispatcher::find_slot_for_target(slots, x.payload) {
+                Some(target) => x.state = State::DELIVERING(target),
+                None => x.state = State::NOTARGET,
             },
             _ => {}
         })
@@ -68,6 +73,12 @@ impl Dispatcher {
         slots
             .iter_mut()
             .position(|x| x.current_payload != x.target_payload && !x.taken_care_of)
+    }
+
+    fn find_slot_for_target(slots: &[Slot], target: Option<PayloadT>) -> Option<usize> {
+        slots
+            .iter()
+            .position(|x| x.current_payload == None && x.target_payload == target)
     }
 }
 
@@ -120,7 +131,10 @@ pub enum State {
     IDLE,
     TARGETING(usize),
     MOVING(usize),
-    PICKING_UP(usize),
+    PICKINGUP(usize),
+    LOOKINGFORTARGET,
+    NOTARGET,
+    DELIVERING(usize),
     _DEBUG_,
 }
 
@@ -129,7 +143,7 @@ pub struct Carrier {
     pos: Position,
     angle: f64,
     state: State,
-    payload: Option<char>,
+    payload: Option<PayloadT>,
 }
 
 impl Carrier {
@@ -204,13 +218,13 @@ impl Carrier {
             State::MOVING(target) => {
                 let target_pos = slots[target].get_position();
                 if self.move_forward_to_point((target_pos.x, target_pos.y)) {
-                    self.state = State::PICKING_UP(target);
+                    self.state = State::PICKINGUP(target);
                 }
             }
-            State::PICKING_UP(target) => {
+            State::PICKINGUP(target) => {
                 self.payload = slots[target].current_payload;
                 slots[target].current_payload = None;
-                self.state = State::_DEBUG_;
+                self.state = State::LOOKINGFORTARGET;
             }
             _ => {}
         }
