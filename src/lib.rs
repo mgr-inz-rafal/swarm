@@ -265,4 +265,16 @@ mod tests {
             assert!(false)
         }
     }
+
+    #[test]
+    fn find_slot_for_target() {
+        let mut game = new();
+
+        game.add_slot(slot!(100.0, 100.0, Some('X'), Some('Y')));
+        game.add_slot(slot!(100.0, 100.0, None, Some('Z')));
+        assert_eq!(
+            Dispatcher::find_slot_for_target(&game.slots, Some('Z')),
+            Some(1)
+        )
+    }
 }
