@@ -248,7 +248,21 @@ mod tests {
     use super::*;
 
     #[test]
-    fn carriers_count_zero() {
-        assert_eq!(0, 0);
+    fn find_mismatched_slot() {
+        let mut game = new();
+
+        game.add_carrier(carrier!(0.0, 0.0));
+        game.add_carrier(carrier!(0.0, 0.0));
+        game.add_slot(slot!(100.0, 100.0, Some('X'), None));
+
+        Dispatcher::conduct(&mut game.carriers, &mut game.slots);
+
+        // Carrier should have target set to slot with 'X'
+        let state = game.carriers[0].state;
+        if let State::TARGETING(target) = state {
+            assert_eq!(game.slots[target].current_payload, Some('X'))
+        } else {
+            assert!(false)
+        }
     }
 }
