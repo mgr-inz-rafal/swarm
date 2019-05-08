@@ -262,7 +262,7 @@ mod tests {
         if let State::TARGETING(target) = state {
             assert_eq!(game.slots[target].current_payload, Some('X'))
         } else {
-            assert!(false)
+            panic!("Found Carrier that is 'targetting' but has no target set")
         }
     }
 
