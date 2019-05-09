@@ -69,7 +69,7 @@ impl Dispatcher {
         })
     }
 
-    fn find_slot_with_mismatched_payload(slots: &Vec<Slot>) -> Option<usize> {
+    fn find_slot_with_mismatched_payload(slots: &[Slot]) -> Option<usize> {
         slots.iter().position(|x| {
             x.current_payload != None && x.current_payload != x.target_payload && !x.taken_care_of
         })
