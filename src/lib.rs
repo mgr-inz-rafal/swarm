@@ -173,8 +173,12 @@ impl Carrier {
         angle
     }
 
-    fn rotate_to(&mut self, target_angle: f64) {
+    fn rotate(&mut self) {
         self.angle += ANGLE_INCREMENT;
+    }
+
+    fn rotate_to(&mut self, target_angle: f64) {
+        self.rotate();
         if self.angle > std::f64::consts::PI * 2.0 {
             self.angle -= std::f64::consts::PI * 2.0;
         }
@@ -185,9 +189,14 @@ impl Carrier {
             < POSITION_EQUALITY_EPSILON
     }
 
-    fn move_forward_to_point(&mut self, target: (f64, f64)) -> bool {
+    fn move_forward(&mut self)
+    {
         self.pos.x += self.angle.cos() * SPEED_FACTOR;
         self.pos.y += self.angle.sin() * SPEED_FACTOR;
+    }
+
+    fn move_forward_to_point(&mut self, target: (f64, f64)) -> bool {
+        self.move_forward();
         self.is_close_enough(target)
     }
 
@@ -235,6 +244,11 @@ impl Carrier {
                 slots[target].current_payload = self.payload;
                 self.payload = None;
                 self.state = State::IDLE;
+            }
+            State::IDLE =>
+            {
+                self.move_forward();
+                self.rotate();
             }
             _ => {}
         }
