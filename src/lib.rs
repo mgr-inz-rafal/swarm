@@ -49,6 +49,10 @@ impl Slot {
     pub fn get_payloads(&self) -> [Option<PayloadT>; 2] {
         [self.current_payload, self.target_payload]
     }
+
+    pub fn is_taken_care_of(&self) -> bool {
+        self.taken_care_of
+    }
 }
 
 struct Dispatcher {}
@@ -57,13 +61,16 @@ impl Dispatcher {
         carriers.iter_mut().for_each(|mut x| match x.state {
             State::IDLE => {
                 if let Some(slot_index) = Dispatcher::find_slot_with_mismatched_payload(slots) {
-                    x.state = State::TARGETING(slot_index);
-                    slots[slot_index].taken_care_of = true;
+                    x.target_slot(slot_index, &mut slots[slot_index])
                 }
             }
             State::LOOKINGFORTARGET => match Dispatcher::find_slot_for_target(slots, x.payload) {
-                Some(target) => x.state = State::TARGETING(target),
+                Some(slot_index) => x.target_slot(slot_index, &mut slots[slot_index]),
                 None => x.state = State::NOTARGET,
+            },
+            State::NOTARGET => match Dispatcher::find_temporary_slot(slots, x.payload) {
+                Some(slot_index) => x.target_slot(slot_index, &mut slots[slot_index]),
+                None => x.state = State::LOOKINGFORTARGET,
             },
             _ => {}
         })
@@ -76,9 +83,15 @@ impl Dispatcher {
     }
 
     fn find_slot_for_target(slots: &[Slot], target: Option<PayloadT>) -> Option<usize> {
+        slots.iter().position(|x| {
+            x.current_payload == None && x.target_payload == target && !x.taken_care_of
+        })
+    }
+
+    fn find_temporary_slot(slots: &[Slot], target: Option<PayloadT>) -> Option<usize> {
         slots
             .iter()
-            .position(|x| x.current_payload == None && x.target_payload == target)
+            .position(|x| x.current_payload == None && !x.taken_care_of)
     }
 }
 
@@ -155,6 +168,11 @@ impl Carrier {
             state: State::IDLE,
             payload: None,
         }
+    }
+
+    fn target_slot(&mut self, target: usize, slot: &mut Slot) {
+        self.state = State::TARGETING(target);
+        slot.taken_care_of = true;
     }
 
     pub fn get_payload(&self) -> Option<PayloadT> {
@@ -248,7 +266,7 @@ impl Carrier {
                 self.payload = None;
                 self.state = State::IDLE;
             }
-            State::IDLE => {
+            State::IDLE | State::NOTARGET => {
                 self.move_forward();
                 self.rotate();
             }
