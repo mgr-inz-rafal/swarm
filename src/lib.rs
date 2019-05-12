@@ -89,48 +89,42 @@ fn debug_dump_slots(slots: &[Slot]) {
             None => print!("    None "),
         }
 
+        print!("\tTaken care of={}", v.taken_care_of);
+
         println!();
     }
 }
 
+pub fn dupa() {}
+
 struct Dispatcher {}
 impl Dispatcher {
     fn conduct(carriers: &mut Vec<Carrier>, slots: &mut Vec<Slot>) {
-        carriers.iter_mut().for_each(|mut x| match x.state {
-            State::IDLE => {
-                if let Some(slot_index) = Dispatcher::find_slot_with_mismatched_payload(slots) {
-                    debug_dump_slots(slots);
-
-                    println!("Found mismatched slot with id {}", slot_index);
-                    x.target_slot(slot_index, &mut slots[slot_index])
+        let mut iii = 0;
+        carriers.iter_mut().for_each(|x| {
+            match x.state {
+                State::IDLE => {
+                    if let Some(slot_index) = Dispatcher::find_slot_with_mismatched_payload(slots) {
+                        x.target_slot(slot_index, &mut slots[slot_index]);
+                    }
                 }
-            }
-            State::LOOKINGFORTARGET => match Dispatcher::find_slot_for_target(slots, x.payload) {
-                Some(slot_index) => {
-                    println!("find_slot_for_target OK {}", slot_index);
-                    x.target_slot(slot_index, &mut slots[slot_index])
-                }
-                None => {
-                    println!("find_slot_for_target NOT OK");
-                    x.state = State::NOTARGET;
-                }
-            },
-            State::NOTARGET => match Dispatcher::find_temporary_slot(slots, x.payload) {
-                Some(slot_index) => {
-                    println!(
-                        "find_temporary_slot OK {}, {}",
-                        slot_index,
-                        x.payload.unwrap().taken_from.unwrap()
-                    );
-                    x.target_slot(slot_index, &mut slots[slot_index])
-                }
-                None => {
-                    println!("find_slot_for_target NOT OK");
-                    x.state = State::LOOKINGFORTARGET;
-                }
-            },
-            _ => {}
-        })
+                State::LOOKINGFORTARGET => match Dispatcher::find_slot_for_target(slots, x.payload)
+                {
+                    Some(slot_index) => x.target_slot(slot_index, &mut slots[slot_index]),
+                    None => {
+                        x.state = State::NOTARGET;
+                    }
+                },
+                State::NOTARGET => match Dispatcher::find_temporary_slot(slots, x.payload) {
+                    Some(slot_index) => x.target_slot(slot_index, &mut slots[slot_index]),
+                    None => {
+                        x.state = State::LOOKINGFORTARGET;
+                    }
+                },
+                _ => {}
+            };
+            iii += 1
+        });
     }
 
     fn find_slot_with_mismatched_payload(slots: &[Slot]) -> Option<usize> {
@@ -323,7 +317,6 @@ impl Carrier {
             State::MOVING(target) => {
                 let target_pos = slots[target].get_position();
                 if self.move_forward_to_point((target_pos.x, target_pos.y)) {
-                    slots[target].taken_care_of = false;
                     match self.payload {
                         Some(_) => self.state = State::PUTTINGDOWN(target),
                         None => self.state = State::PICKINGUP(target),
@@ -338,6 +331,7 @@ impl Carrier {
                         cargo: slots[target].current_payload.unwrap().cargo,
                     });
                     slots[target].current_payload = None;
+                    slots[target].taken_care_of = false;
                     self.state = State::LOOKINGFORTARGET;
                 } else {
                     panic!("Want to pick up from slot without payload")
@@ -347,6 +341,7 @@ impl Carrier {
                 slots[target].current_payload = self.payload;
                 self.payload = None;
                 self.state = State::IDLE;
+                slots[target].taken_care_of = false;
             }
             State::IDLE | State::NOTARGET => {
                 self.move_forward();
