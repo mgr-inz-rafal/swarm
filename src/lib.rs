@@ -16,10 +16,16 @@ macro_rules! slot {
 }
 
 // TODO: type of cargo must be injected by the external caller and not hardcoded to 'char'
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug)]
 pub struct Payload {
     pub cargo: char,
     taken_from: Option<usize>,
+}
+
+impl PartialEq for Payload {
+    fn eq(&self, other: &Payload) -> bool {
+        self.cargo == other.cargo
+    }
 }
 
 impl Payload {
@@ -69,32 +75,78 @@ impl Slot {
     }
 }
 
+fn debug_dump_slots(slots: &[Slot]) {
+    for (i, v) in slots.iter().enumerate() {
+        print!("Slot [{}]: ", i);
+
+        match slots[i].current_payload {
+            Some(p) => print!("{} ", p.cargo),
+            None => print!("None "),
+        }
+
+        match slots[i].target_payload {
+            Some(p) => print!("    {} ", p.cargo),
+            None => print!("    None "),
+        }
+
+        println!();
+    }
+}
+
 struct Dispatcher {}
 impl Dispatcher {
     fn conduct(carriers: &mut Vec<Carrier>, slots: &mut Vec<Slot>) {
         carriers.iter_mut().for_each(|mut x| match x.state {
             State::IDLE => {
                 if let Some(slot_index) = Dispatcher::find_slot_with_mismatched_payload(slots) {
+                    debug_dump_slots(slots);
+
+                    println!("Found mismatched slot with id {}", slot_index);
                     x.target_slot(slot_index, &mut slots[slot_index])
                 }
             }
             State::LOOKINGFORTARGET => match Dispatcher::find_slot_for_target(slots, x.payload) {
-                Some(slot_index) => x.target_slot(slot_index, &mut slots[slot_index]),
-                None => x.state = State::NOTARGET,
+                Some(slot_index) => {
+                    println!("find_slot_for_target OK {}", slot_index);
+                    x.target_slot(slot_index, &mut slots[slot_index])
+                }
+                None => {
+                    println!("find_slot_for_target NOT OK");
+                    x.state = State::NOTARGET;
+                }
             },
             State::NOTARGET => match Dispatcher::find_temporary_slot(slots, x.payload) {
-                Some(slot_index) => x.target_slot(slot_index, &mut slots[slot_index]),
-                None => x.state = State::LOOKINGFORTARGET,
+                Some(slot_index) => {
+                    println!(
+                        "find_temporary_slot OK {}, {}",
+                        slot_index,
+                        x.payload.unwrap().taken_from.unwrap()
+                    );
+                    x.target_slot(slot_index, &mut slots[slot_index])
+                }
+                None => {
+                    println!("find_slot_for_target NOT OK");
+                    x.state = State::LOOKINGFORTARGET;
+                }
             },
             _ => {}
         })
     }
 
     fn find_slot_with_mismatched_payload(slots: &[Slot]) -> Option<usize> {
+        slots.iter().position(|x| {
+            x.current_payload != None && x.current_payload != x.target_payload && !x.taken_care_of
+        })
+    }
+
+    fn find_slot_for_target(slots: &[Slot], target: Option<Payload>) -> Option<usize> {
+        let t = target.expect("Trying to find slot for empty target");
+
         if let Some((index, _)) = slots.iter().enumerate().find(|(index, _)| {
-            slots[*index].current_payload != None
-                && slots[*index].current_payload != slots[*index].target_payload
+            slots[*index].current_payload == None
+                && slots[*index].target_payload == target
                 && !slots[*index].taken_care_of
+                && t.taken_from != Some(*index)
         }) {
             Some(index)
         } else {
@@ -102,16 +154,18 @@ impl Dispatcher {
         }
     }
 
-    fn find_slot_for_target(slots: &[Slot], target: Option<Payload>) -> Option<usize> {
-        slots.iter().position(|x| {
-            x.current_payload == None && x.target_payload == target && !x.taken_care_of
-        })
-    }
-
     fn find_temporary_slot(slots: &[Slot], target: Option<Payload>) -> Option<usize> {
-        slots
-            .iter()
-            .position(|x| x.current_payload == None && !x.taken_care_of)
+        let t = target.expect("Trying to find slot for empty target");
+
+        if let Some((index, _)) = slots.iter().enumerate().find(|(index, _)| {
+            slots[*index].current_payload == None
+                && !slots[*index].taken_care_of
+                && t.taken_from != Some(*index)
+        }) {
+            Some(index)
+        } else {
+            None
+        }
     }
 }
 
@@ -279,8 +333,11 @@ impl Carrier {
             State::PICKINGUP(target) => {
                 self.payload = slots[target].current_payload;
                 if let Some(p) = self.payload {
+                    self.payload = Some(Payload {
+                        taken_from: Some(target),
+                        cargo: slots[target].current_payload.unwrap().cargo,
+                    });
                     slots[target].current_payload = None;
-                    self.payload.unwrap().taken_from = Some(target);
                     self.state = State::LOOKINGFORTARGET;
                 } else {
                     panic!("Want to pick up from slot without payload")
