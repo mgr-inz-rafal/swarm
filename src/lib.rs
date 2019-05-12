@@ -19,11 +19,15 @@ macro_rules! slot {
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Payload {
     pub cargo: char,
+    taken_from: Option<usize>,
 }
 
 impl Payload {
     pub fn from_char(c: char) -> Payload {
-        Payload { cargo: c }
+        Payload {
+            cargo: c,
+            taken_from: None,
+        }
     }
 }
 
@@ -87,9 +91,15 @@ impl Dispatcher {
     }
 
     fn find_slot_with_mismatched_payload(slots: &[Slot]) -> Option<usize> {
-        slots.iter().position(|x| {
-            x.current_payload != None && x.current_payload != x.target_payload && !x.taken_care_of
-        })
+        if let Some((index, _)) = slots.iter().enumerate().find(|(index, _)| {
+            slots[*index].current_payload != None
+                && slots[*index].current_payload != slots[*index].target_payload
+                && !slots[*index].taken_care_of
+        }) {
+            Some(index)
+        } else {
+            None
+        }
     }
 
     fn find_slot_for_target(slots: &[Slot], target: Option<Payload>) -> Option<usize> {
@@ -268,8 +278,13 @@ impl Carrier {
             }
             State::PICKINGUP(target) => {
                 self.payload = slots[target].current_payload;
-                slots[target].current_payload = None;
-                self.state = State::LOOKINGFORTARGET;
+                if let Some(p) = self.payload {
+                    slots[target].current_payload = None;
+                    self.payload.unwrap().taken_from = Some(target);
+                    self.state = State::LOOKINGFORTARGET;
+                } else {
+                    panic!("Want to pick up from slot without payload")
+                }
             }
             State::PUTTINGDOWN(target) => {
                 slots[target].current_payload = self.payload;
