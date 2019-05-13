@@ -15,7 +15,27 @@ macro_rules! slot {
     };
 }
 
-type PayloadT = char;
+// TODO: type of cargo must be injected by the external caller and not hardcoded to 'char'
+#[derive(Copy, Clone, Debug)]
+pub struct Payload {
+    pub cargo: char,
+    taken_from: Option<usize>,
+}
+
+impl PartialEq for Payload {
+    fn eq(&self, other: &Payload) -> bool {
+        self.cargo == other.cargo
+    }
+}
+
+impl Payload {
+    pub fn from_char(c: char) -> Payload {
+        Payload {
+            cargo: c,
+            taken_from: None,
+        }
+    }
+}
 
 const ANGLE_INCREMENT: f64 = 0.05;
 const SPEED_FACTOR: f64 = 2.0;
@@ -24,16 +44,16 @@ const POSITION_EQUALITY_EPSILON: f64 = SPEED_FACTOR * 1.5;
 #[derive(Copy, Clone)]
 pub struct Slot {
     pos: Position,
-    current_payload: Option<PayloadT>,
-    target_payload: Option<PayloadT>,
+    current_payload: Option<Payload>,
+    target_payload: Option<Payload>,
     taken_care_of: bool,
 }
 impl Slot {
     pub fn new(
         x: f64,
         y: f64,
-        current_payload: Option<PayloadT>,
-        target_payload: Option<PayloadT>,
+        current_payload: Option<Payload>,
+        target_payload: Option<Payload>,
     ) -> Slot {
         Slot {
             pos: Position::new(x, y),
@@ -46,27 +66,65 @@ impl Slot {
         &self.pos
     }
 
-    pub fn get_payloads(&self) -> [Option<PayloadT>; 2] {
+    pub fn get_payloads(&self) -> [Option<Payload>; 2] {
         [self.current_payload, self.target_payload]
     }
+
+    pub fn is_taken_care_of(&self) -> bool {
+        self.taken_care_of
+    }
 }
+
+fn debug_dump_slots(slots: &[Slot]) {
+    for (i, v) in slots.iter().enumerate() {
+        print!("Slot [{}]: ", i);
+
+        match slots[i].current_payload {
+            Some(p) => print!("{} ", p.cargo),
+            None => print!("None "),
+        }
+
+        match slots[i].target_payload {
+            Some(p) => print!("    {} ", p.cargo),
+            None => print!("    None "),
+        }
+
+        print!("\tTaken care of={}", v.taken_care_of);
+
+        println!();
+    }
+}
+
+pub fn dupa() {}
 
 struct Dispatcher {}
 impl Dispatcher {
     fn conduct(carriers: &mut Vec<Carrier>, slots: &mut Vec<Slot>) {
-        carriers.iter_mut().for_each(|mut x| match x.state {
-            State::IDLE => {
-                if let Some(slot_index) = Dispatcher::find_slot_with_mismatched_payload(slots) {
-                    x.state = State::TARGETING(slot_index);
-                    slots[slot_index].taken_care_of = true;
+        let mut iii = 0;
+        carriers.iter_mut().for_each(|x| {
+            match x.state {
+                State::IDLE => {
+                    if let Some(slot_index) = Dispatcher::find_slot_with_mismatched_payload(slots) {
+                        x.target_slot(slot_index, &mut slots[slot_index]);
+                    }
                 }
-            }
-            State::LOOKINGFORTARGET => match Dispatcher::find_slot_for_target(slots, x.payload) {
-                Some(target) => x.state = State::TARGETING(target),
-                None => x.state = State::NOTARGET,
-            },
-            _ => {}
-        })
+                State::LOOKINGFORTARGET => match Dispatcher::find_slot_for_target(slots, x.payload)
+                {
+                    Some(slot_index) => x.target_slot(slot_index, &mut slots[slot_index]),
+                    None => {
+                        x.state = State::NOTARGET;
+                    }
+                },
+                State::NOTARGET => match Dispatcher::find_temporary_slot(slots, x.payload) {
+                    Some(slot_index) => x.target_slot(slot_index, &mut slots[slot_index]),
+                    None => {
+                        x.state = State::LOOKINGFORTARGET;
+                    }
+                },
+                _ => {}
+            };
+            iii += 1
+        });
     }
 
     fn find_slot_with_mismatched_payload(slots: &[Slot]) -> Option<usize> {
@@ -75,10 +133,33 @@ impl Dispatcher {
         })
     }
 
-    fn find_slot_for_target(slots: &[Slot], target: Option<PayloadT>) -> Option<usize> {
-        slots
-            .iter()
-            .position(|x| x.current_payload == None && x.target_payload == target)
+    fn find_slot_for_target(slots: &[Slot], target: Option<Payload>) -> Option<usize> {
+        let t = target.expect("Trying to find slot for empty target");
+
+        if let Some((index, _)) = slots.iter().enumerate().find(|(index, _)| {
+            slots[*index].current_payload == None
+                && slots[*index].target_payload == target
+                && !slots[*index].taken_care_of
+                && t.taken_from != Some(*index)
+        }) {
+            Some(index)
+        } else {
+            None
+        }
+    }
+
+    fn find_temporary_slot(slots: &[Slot], target: Option<Payload>) -> Option<usize> {
+        let t = target.expect("Trying to find slot for empty target");
+
+        if let Some((index, _)) = slots.iter().enumerate().find(|(index, _)| {
+            slots[*index].current_payload == None
+                && !slots[*index].taken_care_of
+                && t.taken_from != Some(*index)
+        }) {
+            Some(index)
+        } else {
+            None
+        }
     }
 }
 
@@ -144,7 +225,7 @@ pub struct Carrier {
     pos: Position,
     angle: f64,
     state: State,
-    payload: Option<PayloadT>,
+    payload: Option<Payload>,
 }
 
 impl Carrier {
@@ -157,7 +238,12 @@ impl Carrier {
         }
     }
 
-    pub fn get_payload(&self) -> Option<PayloadT> {
+    fn target_slot(&mut self, target: usize, slot: &mut Slot) {
+        self.state = State::TARGETING(target);
+        slot.taken_care_of = true;
+    }
+
+    pub fn get_payload(&self) -> Option<Payload> {
         self.payload
     }
 
@@ -231,7 +317,6 @@ impl Carrier {
             State::MOVING(target) => {
                 let target_pos = slots[target].get_position();
                 if self.move_forward_to_point((target_pos.x, target_pos.y)) {
-                    slots[target].taken_care_of = false;
                     match self.payload {
                         Some(_) => self.state = State::PUTTINGDOWN(target),
                         None => self.state = State::PICKINGUP(target),
@@ -240,15 +325,25 @@ impl Carrier {
             }
             State::PICKINGUP(target) => {
                 self.payload = slots[target].current_payload;
-                slots[target].current_payload = None;
-                self.state = State::LOOKINGFORTARGET;
+                if let Some(p) = self.payload {
+                    self.payload = Some(Payload {
+                        taken_from: Some(target),
+                        cargo: slots[target].current_payload.unwrap().cargo,
+                    });
+                    slots[target].current_payload = None;
+                    slots[target].taken_care_of = false;
+                    self.state = State::LOOKINGFORTARGET;
+                } else {
+                    panic!("Want to pick up from slot without payload")
+                }
             }
             State::PUTTINGDOWN(target) => {
                 slots[target].current_payload = self.payload;
                 self.payload = None;
                 self.state = State::IDLE;
+                slots[target].taken_care_of = false;
             }
-            State::IDLE => {
+            State::IDLE | State::NOTARGET => {
                 self.move_forward();
                 self.rotate();
             }
@@ -279,14 +374,17 @@ mod tests {
 
         game.add_carrier(carrier!(0.0, 0.0));
         game.add_carrier(carrier!(0.0, 0.0));
-        game.add_slot(slot!(100.0, 100.0, Some('X'), None));
+        game.add_slot(slot!(100.0, 100.0, Some(Payload::from_char('X')), None));
 
         Dispatcher::conduct(&mut game.carriers, &mut game.slots);
 
         // Carrier should have target set to slot with 'X'
         let state = game.carriers[0].state;
         if let State::TARGETING(target) = state {
-            assert_eq!(game.slots[target].current_payload, Some('X'))
+            assert_eq!(
+                game.slots[target].current_payload,
+                Some(Payload::from_char('X'))
+            )
         } else {
             panic!("Found Carrier that is 'targetting' but has no target set")
         }
@@ -296,10 +394,15 @@ mod tests {
     fn find_slot_for_target() {
         let mut game = new();
 
-        game.add_slot(slot!(100.0, 100.0, Some('X'), Some('Y')));
-        game.add_slot(slot!(100.0, 100.0, None, Some('Z')));
+        game.add_slot(slot!(
+            100.0,
+            100.0,
+            Some(Payload::from_char('X')),
+            Some(Payload::from_char('Y'))
+        ));
+        game.add_slot(slot!(100.0, 100.0, None, Some(Payload::from_char('Z'))));
         assert_eq!(
-            Dispatcher::find_slot_for_target(&game.slots, Some('Z')),
+            Dispatcher::find_slot_for_target(&game.slots, Some(Payload::from_char('Z'))),
             Some(1)
         )
     }
@@ -309,7 +412,7 @@ mod tests {
         let mut game = new();
 
         // Slot without current payload cannot have mismatched payload
-        game.add_slot(slot!(100.0, 100.0, None, Some('Z')));
+        game.add_slot(slot!(100.0, 100.0, None, Some(Payload::from_char('Z'))));
         assert_eq!(
             Dispatcher::find_slot_with_mismatched_payload(&game.slots),
             None
@@ -320,7 +423,12 @@ mod tests {
     fn find_mismatched_slot2() {
         let mut game = new();
 
-        game.add_slot(slot!(100.0, 100.0, Some('A'), Some('Z')));
+        game.add_slot(slot!(
+            100.0,
+            100.0,
+            Some(Payload::from_char('A')),
+            Some(Payload::from_char('Z'))
+        ));
         assert_eq!(
             Dispatcher::find_slot_with_mismatched_payload(&game.slots),
             Some(0)
@@ -331,7 +439,12 @@ mod tests {
     fn find_mismatched_slot3() {
         let mut game = new();
 
-        game.add_slot(slot!(100.0, 100.0, Some('A'), Some('A')));
+        game.add_slot(slot!(
+            100.0,
+            100.0,
+            Some(Payload::from_char('A')),
+            Some(Payload::from_char('A'))
+        ));
         assert_eq!(
             Dispatcher::find_slot_with_mismatched_payload(&game.slots),
             None
