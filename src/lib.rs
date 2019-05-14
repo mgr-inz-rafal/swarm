@@ -75,7 +75,7 @@ impl Slot {
     }
 }
 
-fn debug_dump_slots(slots: &[Slot]) {
+fn _debug_dump_slots(slots: &[Slot]) {
     for (i, v) in slots.iter().enumerate() {
         print!("Slot [{}]: ", i);
 
@@ -100,26 +100,30 @@ pub fn dupa() {}
 struct Dispatcher {}
 impl Dispatcher {
     fn conduct(carriers: &mut Vec<Carrier>, slots: &mut Vec<Slot>) {
-        let mut iii = 0;
+        let mut _debug_carrier_indexer = 0;
         carriers.iter_mut().for_each(|x| {
             match x.state {
                 State::IDLE => {
-                    if let Some(slot_index) =
+                    if let (Some(slot_index), possible_target) =
                         Dispatcher::find_slot_with_mismatched_payload_and_free_target(slots)
                     {
                         x.target_slot(slot_index, &mut slots[slot_index]);
+                        slots[possible_target].taken_care_of = true;
+                        x.reserved_target = Some(possible_target);
                     } else if let Some(slot_index) =
                         Dispatcher::find_slot_with_mismatched_payload(slots)
                     {
                         x.target_slot(slot_index, &mut slots[slot_index]);
                     }
                 }
-                State::LOOKINGFORTARGET => match Dispatcher::find_slot_for_target(slots, x.payload)
-                {
+                State::LOOKINGFORTARGET => match x.reserved_target {
                     Some(slot_index) => x.target_slot(slot_index, &mut slots[slot_index]),
-                    None => {
-                        x.state = State::NOTARGET;
-                    }
+                    None => match Dispatcher::find_slot_for_target(slots, x.payload) {
+                        Some(slot_index) => x.target_slot(slot_index, &mut slots[slot_index]),
+                        None => {
+                            x.state = State::NOTARGET;
+                        }
+                    },
                 },
                 State::NOTARGET => match Dispatcher::find_temporary_slot(slots, x.payload) {
                     Some(slot_index) => x.target_slot(slot_index, &mut slots[slot_index]),
@@ -129,25 +133,35 @@ impl Dispatcher {
                 },
                 _ => {}
             };
-            iii += 1
+            _debug_carrier_indexer += 1
         });
     }
 
-    fn is_there_a_free_slot_for(payload: Payload, slots: &[Slot]) -> bool {
-        slots.iter().any(|x| {
-            x.current_payload == None
-                && x.target_payload != None
-                && x.target_payload.unwrap() == payload
-        })
+    fn is_there_a_free_slot_for(payload: Payload, slots: &[Slot], ii: &mut usize) -> bool {
+        for (i, v) in slots.iter().enumerate() {
+            if v.current_payload == None
+                && v.target_payload != None
+                && !v.taken_care_of
+                && v.target_payload.unwrap() == payload
+            {
+                *ii = i;
+                return true;
+            }
+        }
+
+        false
     }
 
-    fn find_slot_with_mismatched_payload_and_free_target(slots: &[Slot]) -> Option<usize> {
-        slots.iter().position(|x| {
+    fn find_slot_with_mismatched_payload_and_free_target(slots: &[Slot]) -> (Option<usize>, usize) {
+        let mut ii: usize = 0; // TODO: Make this an Option
+        let found = slots.iter().position(|x| {
             x.current_payload != None
                 && x.current_payload != x.target_payload
                 && !x.taken_care_of
-                && Dispatcher::is_there_a_free_slot_for(x.current_payload.unwrap(), slots)
-        })
+                && Dispatcher::is_there_a_free_slot_for(x.current_payload.unwrap(), slots, &mut ii)
+        });
+
+        (found, ii)
     }
 
     fn find_slot_with_mismatched_payload(slots: &[Slot]) -> Option<usize> {
@@ -249,6 +263,7 @@ pub struct Carrier {
     angle: f64,
     state: State,
     payload: Option<Payload>,
+    reserved_target: Option<usize>,
 }
 
 impl Carrier {
@@ -258,6 +273,7 @@ impl Carrier {
             angle: 0.0,
             state: State::IDLE,
             payload: None,
+            reserved_target: None,
         }
     }
 
@@ -348,7 +364,7 @@ impl Carrier {
             }
             State::PICKINGUP(target) => {
                 self.payload = slots[target].current_payload;
-                if let Some(_) = self.payload {
+                if self.payload.is_some() {
                     self.payload = Some(Payload {
                         taken_from: Some(target),
                         cargo: slots[target].current_payload.unwrap().cargo,
@@ -363,6 +379,7 @@ impl Carrier {
             State::PUTTINGDOWN(target) => {
                 slots[target].current_payload = self.payload;
                 self.payload = None;
+                self.reserved_target = None;
                 self.state = State::IDLE;
                 slots[target].taken_care_of = false;
             }
