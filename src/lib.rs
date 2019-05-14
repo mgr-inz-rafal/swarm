@@ -104,7 +104,13 @@ impl Dispatcher {
         carriers.iter_mut().for_each(|x| {
             match x.state {
                 State::IDLE => {
-                    if let Some(slot_index) = Dispatcher::find_slot_with_mismatched_payload(slots) {
+                    if let Some(slot_index) =
+                        Dispatcher::find_slot_with_mismatched_payload_and_free_target(slots)
+                    {
+                        x.target_slot(slot_index, &mut slots[slot_index]);
+                    } else if let Some(slot_index) =
+                        Dispatcher::find_slot_with_mismatched_payload(slots)
+                    {
                         x.target_slot(slot_index, &mut slots[slot_index]);
                     }
                 }
@@ -125,6 +131,23 @@ impl Dispatcher {
             };
             iii += 1
         });
+    }
+
+    fn is_there_a_free_slot_for(payload: Payload, slots: &[Slot]) -> bool {
+        slots.iter().any(|x| {
+            x.current_payload == None
+                && x.target_payload != None
+                && x.target_payload.unwrap() == payload
+        })
+    }
+
+    fn find_slot_with_mismatched_payload_and_free_target(slots: &[Slot]) -> Option<usize> {
+        slots.iter().position(|x| {
+            x.current_payload != None
+                && x.current_payload != x.target_payload
+                && !x.taken_care_of
+                && Dispatcher::is_there_a_free_slot_for(x.current_payload.unwrap(), slots)
+        })
     }
 
     fn find_slot_with_mismatched_payload(slots: &[Slot]) -> Option<usize> {
@@ -325,7 +348,7 @@ impl Carrier {
             }
             State::PICKINGUP(target) => {
                 self.payload = slots[target].current_payload;
-                if let Some(p) = self.payload {
+                if let Some(_) = self.payload {
                     self.payload = Some(Payload {
                         taken_from: Some(target),
                         cargo: slots[target].current_payload.unwrap().cargo,
