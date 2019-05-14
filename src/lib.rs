@@ -364,7 +364,7 @@ impl Carrier {
             }
             State::PICKINGUP(target) => {
                 self.payload = slots[target].current_payload;
-                if let Some(_) = self.payload {
+                if self.payload.is_some() {
                     self.payload = Some(Payload {
                         taken_from: Some(target),
                         cargo: slots[target].current_payload.unwrap().cargo,
