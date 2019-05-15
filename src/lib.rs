@@ -255,7 +255,7 @@ pub enum State {
     _DEBUG_,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 enum RotationDirection {
     CLOCKWISE,
     COUNTERCLOCKWISE,
@@ -525,5 +525,48 @@ mod tests {
             Dispatcher::find_slot_with_mismatched_payload(&game.slots),
             None
         )
+    }
+
+    #[test]
+    fn rotate_direction_calculation1() {
+        let mut game = new();
+
+        game.add_carrier(carrier!(0.0, 0.0));
+        let mut carrier = game.get_carriers()[0];
+        carrier.angle = 0.0;
+        carrier.rotate_to(std::f64::consts::PI / 2.0);
+
+        assert_eq!(
+            carrier.rotation_direction.unwrap(),
+            RotationDirection::CLOCKWISE
+        )
+    }
+
+    #[test]
+    fn rotate_direction_calculation2() {
+        let mut game = new();
+
+        game.add_carrier(carrier!(0.0, 0.0));
+        let mut carrier = game.get_carriers()[0];
+        carrier.angle = 0.0;
+        carrier.rotate_to(std::f64::consts::PI / 2.0 * 3.0);
+
+        assert_eq!(
+            carrier.rotation_direction.unwrap(),
+            RotationDirection::COUNTERCLOCKWISE
+        )
+    }
+
+    #[test]
+    fn rotate_direction_calculation3() {
+        let mut game = new();
+
+        game.add_carrier(carrier!(0.0, 0.0));
+        let mut carrier = game.get_carriers()[0];
+        carrier.angle = 0.0;
+        carrier.rotate_to(std::f64::consts::PI);
+
+        // When rotation 180deg, choose either left or right direction
+        assert!(carrier.rotation_direction.is_some())
     }
 }
