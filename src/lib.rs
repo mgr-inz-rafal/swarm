@@ -265,7 +265,6 @@ enum RotationDirection {
 pub struct Carrier {
     pos: Position,
     angle: f64,
-    target_angle: Option<f64>,
     state: State,
     payload: Option<Payload>,
     reserved_target: Option<usize>,
@@ -277,7 +276,6 @@ impl Carrier {
         Carrier {
             pos: Position::new(x, y),
             angle: 0.0,
-            target_angle: None,
             state: State::IDLE,
             payload: None,
             reserved_target: None,
@@ -311,27 +309,28 @@ impl Carrier {
     }
 
     fn rotate(&mut self) {
-        match self.rotation_direction {
-            Some(direction) => match direction {
+        if let Some(direction) = self.rotation_direction {
+            match direction {
                 RotationDirection::CLOCKWISE => self.angle += ANGLE_INCREMENT,
                 RotationDirection::COUNTERCLOCKWISE => self.angle -= ANGLE_INCREMENT,
-            },
-            None => {
-                let src = self.angle;
-                let mut trg = self.target_angle.unwrap();
-                if trg < src {
-                    trg += std::f64::consts::PI * 2.0
-                };
-                self.rotation_direction = if trg - src > std::f64::consts::PI {
-                    Some(RotationDirection::COUNTERCLOCKWISE)
-                } else {
-                    Some(RotationDirection::CLOCKWISE)
-                };
             }
         }
     }
 
     fn rotate_to(&mut self, target_angle: f64) {
+        if self.rotation_direction.is_none() {
+            let src = self.angle;
+            let mut trg = target_angle;
+            if trg < src {
+                trg += std::f64::consts::PI * 2.0
+            };
+            self.rotation_direction = if trg - src > std::f64::consts::PI {
+                Some(RotationDirection::COUNTERCLOCKWISE)
+            } else {
+                Some(RotationDirection::CLOCKWISE)
+            };
+        }
+
         self.rotate();
         if let Some(direction) = self.rotation_direction {
             match direction {
@@ -379,27 +378,19 @@ impl Carrier {
     pub fn tick(&mut self, slots: &mut Vec<Slot>) {
         match self.state {
             State::TARGETING(target) => {
-                if self.target_angle.is_none() {
-                    let target_pos = slots[target].get_position();
-                    self.target_angle =
-                        Some(self.calculate_angle_to_point((target_pos.x, target_pos.y)));
-                }
+                let target_pos = slots[target].get_position();
+                let target_angle = self.calculate_angle_to_point((target_pos.x, target_pos.y));
 
-                if !relative_eq!(
-                    self.target_angle.unwrap(),
-                    self.angle,
-                    epsilon = ANGLE_INCREMENT * 1.2
-                ) {
-                    self.rotate_to(self.target_angle.unwrap())
+                if !relative_eq!(target_angle, self.angle, epsilon = ANGLE_INCREMENT * 1.2) {
+                    self.rotate_to(target_angle)
                 } else {
-                    self.angle = self.target_angle.unwrap();
+                    self.angle = target_angle;
                     self.state = State::MOVING(target);
                 }
             }
             State::MOVING(target) => {
                 let target_pos = slots[target].get_position();
                 if self.move_forward_to_point((target_pos.x, target_pos.y)) {
-                    self.target_angle = None;
                     self.rotation_direction = None;
                     match self.payload {
                         Some(_) => self.state = State::PUTTINGDOWN(target),
