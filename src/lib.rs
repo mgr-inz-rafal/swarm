@@ -95,8 +95,6 @@ fn _debug_dump_slots(slots: &[Slot]) {
     }
 }
 
-pub fn dupa() {}
-
 struct Dispatcher {}
 impl Dispatcher {
     fn conduct(carriers: &mut Vec<Carrier>, slots: &mut Vec<Slot>) {
@@ -257,6 +255,12 @@ pub enum State {
     _DEBUG_,
 }
 
+#[derive(Copy, Clone, Debug, PartialEq)]
+enum RotationDirection {
+    CLOCKWISE,
+    COUNTERCLOCKWISE,
+}
+
 #[derive(Copy, Clone)]
 pub struct Carrier {
     pos: Position,
@@ -264,6 +268,7 @@ pub struct Carrier {
     state: State,
     payload: Option<Payload>,
     reserved_target: Option<usize>,
+    rotation_direction: Option<RotationDirection>,
 }
 
 impl Carrier {
@@ -274,6 +279,7 @@ impl Carrier {
             state: State::IDLE,
             payload: None,
             reserved_target: None,
+            rotation_direction: None,
         }
     }
 
@@ -303,13 +309,42 @@ impl Carrier {
     }
 
     fn rotate(&mut self) {
-        self.angle += ANGLE_INCREMENT;
+        if let Some(direction) = self.rotation_direction {
+            match direction {
+                RotationDirection::CLOCKWISE => self.angle += ANGLE_INCREMENT,
+                RotationDirection::COUNTERCLOCKWISE => self.angle -= ANGLE_INCREMENT,
+            }
+        }
     }
 
     fn rotate_to(&mut self, target_angle: f64) {
+        if self.rotation_direction.is_none() {
+            let src = self.angle;
+            let mut trg = target_angle;
+            if trg < src {
+                trg += std::f64::consts::PI * 2.0
+            };
+            self.rotation_direction = if trg - src > std::f64::consts::PI {
+                Some(RotationDirection::COUNTERCLOCKWISE)
+            } else {
+                Some(RotationDirection::CLOCKWISE)
+            };
+        }
+
         self.rotate();
-        if self.angle > std::f64::consts::PI * 2.0 {
-            self.angle -= std::f64::consts::PI * 2.0;
+        if let Some(direction) = self.rotation_direction {
+            match direction {
+                RotationDirection::CLOCKWISE => {
+                    if self.angle > std::f64::consts::PI * 2.0 {
+                        self.angle -= std::f64::consts::PI * 2.0;
+                    }
+                }
+                RotationDirection::COUNTERCLOCKWISE => {
+                    if self.angle < 0.0 {
+                        self.angle += std::f64::consts::PI * 2.0;
+                    }
+                }
+            }
         }
     }
 
@@ -356,6 +391,7 @@ impl Carrier {
             State::MOVING(target) => {
                 let target_pos = slots[target].get_position();
                 if self.move_forward_to_point((target_pos.x, target_pos.y)) {
+                    self.rotation_direction = None;
                     match self.payload {
                         Some(_) => self.state = State::PUTTINGDOWN(target),
                         None => self.state = State::PICKINGUP(target),
@@ -489,5 +525,48 @@ mod tests {
             Dispatcher::find_slot_with_mismatched_payload(&game.slots),
             None
         )
+    }
+
+    #[test]
+    fn rotate_direction_calculation1() {
+        let mut game = new();
+
+        game.add_carrier(carrier!(0.0, 0.0));
+        let mut carrier = game.get_carriers()[0];
+        carrier.angle = 0.0;
+        carrier.rotate_to(std::f64::consts::PI / 2.0);
+
+        assert_eq!(
+            carrier.rotation_direction.unwrap(),
+            RotationDirection::CLOCKWISE
+        )
+    }
+
+    #[test]
+    fn rotate_direction_calculation2() {
+        let mut game = new();
+
+        game.add_carrier(carrier!(0.0, 0.0));
+        let mut carrier = game.get_carriers()[0];
+        carrier.angle = 0.0;
+        carrier.rotate_to(std::f64::consts::PI / 2.0 * 3.0);
+
+        assert_eq!(
+            carrier.rotation_direction.unwrap(),
+            RotationDirection::COUNTERCLOCKWISE
+        )
+    }
+
+    #[test]
+    fn rotate_direction_calculation3() {
+        let mut game = new();
+
+        game.add_carrier(carrier!(0.0, 0.0));
+        let mut carrier = game.get_carriers()[0];
+        carrier.angle = 0.0;
+        carrier.rotate_to(std::f64::consts::PI);
+
+        // When rotation 180deg, choose either left or right direction
+        assert!(carrier.rotation_direction.is_some())
     }
 }
