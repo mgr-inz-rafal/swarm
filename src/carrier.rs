@@ -1,4 +1,29 @@
+use super::payload::*;
 use super::position::*;
+use super::slot::*;
+
+const ANGLE_INCREMENT: f64 = 0.05;
+const SPEED_FACTOR: f64 = 2.0;
+const POSITION_EQUALITY_EPSILON: f64 = SPEED_FACTOR * 1.5;
+
+#[derive(Copy, Clone)]
+pub enum State {
+    IDLE,
+    TARGETING(usize),
+    MOVING(usize),
+    PICKINGUP(usize),
+    LOOKINGFORTARGET,
+    NOTARGET,
+    DELIVERING(usize),
+    PUTTINGDOWN(usize),
+    _DEBUG_,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq)]
+enum RotationDirection {
+    CLOCKWISE,
+    COUNTERCLOCKWISE,
+}
 
 #[derive(Copy, Clone)]
 pub struct Carrier {

@@ -1,8 +1,11 @@
 mod carrier;
+mod payload;
 mod position;
+mod slot;
 
-use carrier::*;
-use position::*;
+pub use carrier::*;
+pub use payload::*;
+pub use slot::*;
 
 #[macro_use]
 extern crate approx;
@@ -15,70 +18,10 @@ macro_rules! make_carrier {
 }
 
 #[macro_export]
-macro_rules! slot {
+macro_rules! make_slot {
     ($x: expr, $y: expr, $cp: expr, $tp: expr) => {
         Slot::new($x, $y, $cp, $tp)
     };
-}
-
-// TODO: type of cargo must be injected by the external caller and not hardcoded to 'char'
-#[derive(Copy, Clone, Debug)]
-pub struct Payload {
-    pub cargo: char,
-    taken_from: Option<usize>,
-}
-
-impl PartialEq for Payload {
-    fn eq(&self, other: &Payload) -> bool {
-        self.cargo == other.cargo
-    }
-}
-
-impl Payload {
-    pub fn from_char(c: char) -> Payload {
-        Payload {
-            cargo: c,
-            taken_from: None,
-        }
-    }
-}
-
-const ANGLE_INCREMENT: f64 = 0.05;
-const SPEED_FACTOR: f64 = 2.0;
-const POSITION_EQUALITY_EPSILON: f64 = SPEED_FACTOR * 1.5;
-
-#[derive(Copy, Clone)]
-pub struct Slot {
-    pos: Position,
-    current_payload: Option<Payload>,
-    target_payload: Option<Payload>,
-    taken_care_of: bool,
-}
-impl Slot {
-    pub fn new(
-        x: f64,
-        y: f64,
-        current_payload: Option<Payload>,
-        target_payload: Option<Payload>,
-    ) -> Slot {
-        Slot {
-            pos: Position::new(x, y),
-            current_payload,
-            target_payload,
-            taken_care_of: false,
-        }
-    }
-    pub fn get_position(&self) -> &Position {
-        &self.pos
-    }
-
-    pub fn get_payloads(&self) -> [Option<Payload>; 2] {
-        [self.current_payload, self.target_payload]
-    }
-
-    pub fn is_taken_care_of(&self) -> bool {
-        self.taken_care_of
-    }
 }
 
 fn _debug_dump_slots(slots: &[Slot]) {
@@ -246,25 +189,6 @@ impl Swarm {
         Dispatcher::conduct(&mut self.carriers, &mut slots);
         self.carriers.iter_mut().for_each(|x| x.tick(slots));
     }
-}
-
-#[derive(Copy, Clone)]
-pub enum State {
-    IDLE,
-    TARGETING(usize),
-    MOVING(usize),
-    PICKINGUP(usize),
-    LOOKINGFORTARGET,
-    NOTARGET,
-    DELIVERING(usize),
-    PUTTINGDOWN(usize),
-    _DEBUG_,
-}
-
-#[derive(Copy, Clone, Debug, PartialEq)]
-enum RotationDirection {
-    CLOCKWISE,
-    COUNTERCLOCKWISE,
 }
 
 #[cfg(test)]
