@@ -95,8 +95,6 @@ fn _debug_dump_slots(slots: &[Slot]) {
     }
 }
 
-pub fn dupa() {}
-
 struct Dispatcher {}
 impl Dispatcher {
     fn conduct(carriers: &mut Vec<Carrier>, slots: &mut Vec<Slot>) {
@@ -258,12 +256,20 @@ pub enum State {
 }
 
 #[derive(Copy, Clone)]
+enum RotationDirection {
+    CLOCKWISE,
+    COUNTERCLOCKWISE,
+}
+
+#[derive(Copy, Clone)]
 pub struct Carrier {
     pos: Position,
     angle: f64,
+    target_angle: Option<f64>,
     state: State,
     payload: Option<Payload>,
     reserved_target: Option<usize>,
+    rotation_direction: Option<RotationDirection>,
 }
 
 impl Carrier {
@@ -271,9 +277,11 @@ impl Carrier {
         Carrier {
             pos: Position::new(x, y),
             angle: 0.0,
+            target_angle: None,
             state: State::IDLE,
             payload: None,
             reserved_target: None,
+            rotation_direction: None,
         }
     }
 
@@ -303,13 +311,41 @@ impl Carrier {
     }
 
     fn rotate(&mut self) {
-        self.angle += ANGLE_INCREMENT;
+        match self.rotation_direction {
+            Some(direction) => match direction {
+                RotationDirection::CLOCKWISE => self.angle += ANGLE_INCREMENT,
+                RotationDirection::COUNTERCLOCKWISE => self.angle -= ANGLE_INCREMENT,
+            },
+            None => {
+                let src = self.angle;
+                let mut trg = self.target_angle.unwrap();
+                if trg < src {
+                    trg += std::f64::consts::PI * 2.0
+                };
+                self.rotation_direction = if trg - src > std::f64::consts::PI {
+                    Some(RotationDirection::COUNTERCLOCKWISE)
+                } else {
+                    Some(RotationDirection::CLOCKWISE)
+                };
+            }
+        }
     }
 
     fn rotate_to(&mut self, target_angle: f64) {
         self.rotate();
-        if self.angle > std::f64::consts::PI * 2.0 {
-            self.angle -= std::f64::consts::PI * 2.0;
+        if let Some(direction) = self.rotation_direction {
+            match direction {
+                RotationDirection::CLOCKWISE => {
+                    if self.angle > std::f64::consts::PI * 2.0 {
+                        self.angle -= std::f64::consts::PI * 2.0;
+                    }
+                }
+                RotationDirection::COUNTERCLOCKWISE => {
+                    if self.angle < 0.0 {
+                        self.angle += std::f64::consts::PI * 2.0;
+                    }
+                }
+            }
         }
     }
 
@@ -343,19 +379,28 @@ impl Carrier {
     pub fn tick(&mut self, slots: &mut Vec<Slot>) {
         match self.state {
             State::TARGETING(target) => {
-                let target_pos = slots[target].get_position();
-                let target_angle = self.calculate_angle_to_point((target_pos.x, target_pos.y));
+                if self.target_angle.is_none() {
+                    let target_pos = slots[target].get_position();
+                    self.target_angle =
+                        Some(self.calculate_angle_to_point((target_pos.x, target_pos.y)));
+                }
 
-                if !relative_eq!(target_angle, self.angle, epsilon = ANGLE_INCREMENT * 1.2) {
-                    self.rotate_to(target_angle)
+                if !relative_eq!(
+                    self.target_angle.unwrap(),
+                    self.angle,
+                    epsilon = ANGLE_INCREMENT * 1.2
+                ) {
+                    self.rotate_to(self.target_angle.unwrap())
                 } else {
-                    self.angle = target_angle;
+                    self.angle = self.target_angle.unwrap();
                     self.state = State::MOVING(target);
                 }
             }
             State::MOVING(target) => {
                 let target_pos = slots[target].get_position();
                 if self.move_forward_to_point((target_pos.x, target_pos.y)) {
+                    self.target_angle = None;
+                    self.rotation_direction = None;
                     match self.payload {
                         Some(_) => self.state = State::PUTTINGDOWN(target),
                         None => self.state = State::PICKINGUP(target),
