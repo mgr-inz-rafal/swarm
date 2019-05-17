@@ -20,7 +20,7 @@ pub enum State {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
-enum RotationDirection {
+pub enum RotationDirection {
     CLOCKWISE,
     COUNTERCLOCKWISE,
 }
