@@ -24,7 +24,6 @@ fn conduct_to_targetting() {
     }
 }
 
-/*
 #[test]
 fn find_slot_for_target() {
     let mut game = new();
@@ -36,12 +35,16 @@ fn find_slot_for_target() {
         Some(Payload::from_char('Y'))
     ));
     game.add_slot(make_slot!(100.0, 100.0, None, Some(Payload::from_char('Z'))));
+
+    game.tick();
+
+    let carriers = game.get_carriers();
+    
     assert_eq!(
         Dispatcher::find_slot_for_target(&game.slots, Some(Payload::from_char('Z'))),
         Some(1)
     )
 }
-*/
 
 /*
 #[test]
