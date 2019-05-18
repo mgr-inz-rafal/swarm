@@ -31,56 +31,6 @@ fn conduct_to_targetting() {
 
 /*
 #[test]
-fn find_mismatched_slot1() {
-    let mut game = new();
-
-    // Slot without current payload cannot have mismatched payload
-    game.add_slot(make_slot!(100.0, 100.0, None, Some(Payload::from_char('Z'))));
-    assert_eq!(
-        Dispatcher::find_slot_with_mismatched_payload(&game.slots),
-        None
-    )
-}
-*/
-
-/*
-#[test]
-fn find_mismatched_slot2() {
-    let mut game = new();
-
-    game.add_slot(make_slot!(
-        100.0,
-        100.0,
-        Some(Payload::from_char('A')),
-        Some(Payload::from_char('Z'))
-    ));
-    assert_eq!(
-        Dispatcher::find_slot_with_mismatched_payload(&game.slots),
-        Some(0)
-    )
-}
-*/
-
-/*
-#[test]
-fn find_mismatched_slot3() {
-    let mut game = new();
-
-    game.add_slot(make_slot!(
-        100.0,
-        100.0,
-        Some(Payload::from_char('A')),
-        Some(Payload::from_char('A'))
-    ));
-    assert_eq!(
-        Dispatcher::find_slot_with_mismatched_payload(&game.slots),
-        None
-    )
-}
-*/
-
-/*
-#[test]
 fn rotate_direction_calculation1() {
     let mut game = swarm::new();
 

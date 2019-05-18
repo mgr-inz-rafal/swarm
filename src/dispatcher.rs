@@ -107,42 +107,136 @@ impl Dispatcher {
 
 #[cfg(test)]
 mod tests {
-    use crate::payload::*;
+    use crate::dispatcher::*;
 
     #[test]
     fn find_slot_for_target() {
-        make_carrier!(0.0, 0.0);
-        let slots = vec![make_slot!(
-            100.0,
-            100.0,
-            Some(Payload::from_char('X')),
-            Some(Payload::from_char('Y'))
-        )];
-
-        assert_eq!(1, 1);
-
-        /*
-        game.add_slot(make_slot!(
-            100.0,
-            100.0,
-            Some(Payload::from_char('X')),
-            Some(Payload::from_char('Y'))
-        ));
-        game.add_slot(make_slot!(
-            100.0,
-            100.0,
-            None,
-            Some(Payload::from_char('Z'))
-        ));
-
-        game.tick();
-
-        let carriers = game.get_carriers();
+        let slots = vec![
+            make_slot!(
+                100.0,
+                100.0,
+                Some(Payload::from_char('X')),
+                Some(Payload::from_char('B'))
+            ),
+            make_slot!(100.0, 100.0, None, Some(Payload::from_char('B'))),
+        ];
 
         assert_eq!(
-            Dispatcher::find_slot_for_target(&game.slots, Some(Payload::from_char('Z'))),
+            Dispatcher::find_slot_for_target(&slots, Some(Payload::from_char('B'))),
             Some(1)
         )
-        */
+    }
+
+    #[test]
+    fn find_mismatched_slot1() {
+        let slots = vec![
+            make_slot!(100.0, 100.0, None, Some(Payload::from_char('X'))),
+            make_slot!(100.0, 100.0, None, Some(Payload::from_char('Y'))),
+        ];
+
+        // Slot without current payload cannot have mismatched payload
+        assert_eq!(Dispatcher::find_slot_with_mismatched_payload(&slots), None)
+    }
+
+    #[test]
+    fn find_mismatched_slot2() {
+        let slots = vec![
+            make_slot!(
+                100.0,
+                100.0,
+                Some(Payload::from_char('X')),
+                Some(Payload::from_char('X'))
+            ),
+            make_slot!(
+                100.0,
+                100.0,
+                Some(Payload::from_char('A')),
+                Some(Payload::from_char('Y'))
+            ),
+        ];
+
+        assert_eq!(
+            Dispatcher::find_slot_with_mismatched_payload(&slots),
+            Some(1)
+        )
+    }
+
+    #[test]
+    fn find_mismatched_slot3() {
+        let slots = vec![
+            make_slot!(
+                100.0,
+                100.0,
+                Some(Payload::from_char('Y')),
+                Some(Payload::from_char('Y'))
+            ),
+            make_slot!(
+                100.0,
+                100.0,
+                Some(Payload::from_char('A')),
+                Some(Payload::from_char('A'))
+            ),
+        ];
+
+        assert_eq!(Dispatcher::find_slot_with_mismatched_payload(&slots), None)
+    }
+
+    #[test]
+    fn find_mismatched_slot_with_target1() {
+        let slots = vec![
+            make_slot!(
+                100.0,
+                100.0,
+                Some(Payload::from_char('A')),
+                Some(Payload::from_char('B'))
+            ),
+            make_slot!(
+                100.0,
+                100.0,
+                Some(Payload::from_char('X')),
+                Some(Payload::from_char('B'))
+            ),
+        ];
+
+        assert_eq!(
+            Dispatcher::find_slot_with_mismatched_payload_and_free_target(&slots),
+            (None, 0)
+        )
+    }
+
+    #[test]
+    fn find_mismatched_slot_with_target2() {
+        let slots = vec![
+            make_slot!(
+                100.0,
+                100.0,
+                Some(Payload::from_char('A')),
+                Some(Payload::from_char('B'))
+            ),
+            make_slot!(100.0, 100.0, None, Some(Payload::from_char('B'))),
+        ];
+
+        assert_eq!(
+            Dispatcher::find_slot_with_mismatched_payload_and_free_target(&slots),
+            (None, 0)
+        )
+    }
+
+    #[test]
+    fn find_mismatched_slot_with_target3() {
+        let slots = vec![
+            make_slot!(
+                100.0,
+                100.0,
+                Some(Payload::from_char('A')),
+                Some(Payload::from_char('B'))
+            ),
+            make_slot!(100.0, 100.0, None, Some(Payload::from_char('A'))),
+        ];
+
+        assert_eq!(
+            Dispatcher::find_slot_with_mismatched_payload_and_free_target(&slots),
+            (Some(0), 1)
+        )
     }
 }
