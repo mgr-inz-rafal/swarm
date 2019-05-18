@@ -24,7 +24,8 @@ fn _debug_dump_slots(slots: &[Slot]) {
             None => print!("None "),
         }
 
-        match slots[i].target_payload {
+        let [_, target] = v.get_payloads();
+        match target {
             Some(p) => print!("    {} ", p.cargo),
             None => print!("    None "),
         }

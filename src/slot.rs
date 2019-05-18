@@ -5,7 +5,7 @@ use super::position::*;
 pub struct Slot {
     pos: Position,
     pub(crate) current_payload: Option<Payload>,
-    pub(crate) target_payload: Option<Payload>,
+    target_payload: Option<Payload>,
     pub(crate) taken_care_of: bool,
 }
 impl Slot {

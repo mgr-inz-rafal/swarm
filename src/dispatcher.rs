@@ -61,11 +61,8 @@ impl Dispatcher {
 
     fn is_there_a_free_slot_for(payload: Payload, slots: &[Slot], ii: &mut usize) -> bool {
         for (i, v) in slots.iter().enumerate() {
-            if v.current_payload == None
-                && v.target_payload != None
-                && !v.taken_care_of
-                && v.target_payload.unwrap() == payload
-            {
+            let [current, target] = v.get_payloads();
+            if current == None && target != None && !v.taken_care_of && target.unwrap() == payload {
                 *ii = i;
                 return true;
             }
@@ -77,10 +74,11 @@ impl Dispatcher {
     fn find_slot_with_mismatched_payload_and_free_target(slots: &[Slot]) -> (Option<usize>, usize) {
         let mut ii: usize = 0; // TODO: Make this an Option
         let found = slots.iter().position(|x| {
-            x.current_payload != None
-                && x.current_payload != x.target_payload
+            let [current, target] = x.get_payloads();
+            current != None
+                && current != target
                 && !x.taken_care_of
-                && Dispatcher::is_there_a_free_slot_for(x.current_payload.unwrap(), slots, &mut ii)
+                && Dispatcher::is_there_a_free_slot_for(current.unwrap(), slots, &mut ii)
         });
 
         (found, ii)
@@ -88,16 +86,18 @@ impl Dispatcher {
 
     fn find_slot_with_mismatched_payload(slots: &[Slot]) -> Option<usize> {
         slots.iter().position(|x| {
-            x.current_payload != None && x.current_payload != x.target_payload && !x.taken_care_of
+            let [current, target] = x.get_payloads();
+            current != None && current != target && !x.taken_care_of
         })
     }
 
-    fn find_slot_for_target(slots: &[Slot], target: Option<Payload>) -> Option<usize> {
-        let t = target.expect("Trying to find slot for empty target");
+    fn find_slot_for_target(slots: &[Slot], target_payload: Option<Payload>) -> Option<usize> {
+        let t = target_payload.expect("Trying to find slot for empty target");
 
         if let Some((index, _)) = slots.iter().enumerate().find(|(index, _)| {
-            slots[*index].current_payload == None
-                && slots[*index].target_payload == target
+            let [current, target] = slots[*index].get_payloads();
+            current == None
+                && target == target_payload
                 && !slots[*index].taken_care_of
                 && t.taken_from != Some(*index)
         }) {
