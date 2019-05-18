@@ -95,9 +95,9 @@ impl Dispatcher {
         let t = target_payload.expect("Trying to find slot for empty target");
 
         if let Some((index, _)) = slots.iter().enumerate().find(|(index, _)| {
-            let [current, target] = slots[*index].get_payloads();
+            let [current, _] = slots[*index].get_payloads();
             current == None
-                && target == target_payload
+                && slots[*index].accepts(target_payload)
                 && !slots[*index].taken_care_of
                 && t.taken_from != Some(*index)
         }) {

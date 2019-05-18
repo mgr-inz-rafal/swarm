@@ -33,4 +33,8 @@ impl Slot {
     pub fn is_taken_care_of(&self) -> bool {
         self.taken_care_of
     }
+
+    pub(crate) fn accepts(&self, p: Option<Payload>) -> bool {
+        self.target_payload == p
+    }
 }
