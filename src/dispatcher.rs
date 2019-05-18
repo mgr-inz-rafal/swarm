@@ -256,4 +256,47 @@ mod tests {
             (Some(0), 1)
         )
     }
+
+    #[test]
+    fn is_there_a_free_slot_for1() {
+        let slots = vec![
+            make_slot!(
+                100.0,
+                100.0,
+                Some(Payload::from_char('A')),
+                Some(Payload::from_char('B'))
+            ),
+            make_slot!(100.0, 100.0, None, Some(Payload::from_char('C'))),
+        ];
+
+        let p = Payload::from_char('C');
+        let mut ii = 0;
+
+        assert_eq!(
+            Dispatcher::is_there_a_free_slot_for(p, &slots, &mut ii),
+            true
+        );
+        assert_eq!(ii, 1)
+    }
+
+    #[test]
+    fn is_there_a_free_slot_for2() {
+        let slots = vec![
+            make_slot!(
+                100.0,
+                100.0,
+                Some(Payload::from_char('A')),
+                Some(Payload::from_char('C'))
+            ),
+            make_slot!(100.0, 100.0, None, Some(Payload::from_char('D'))),
+        ];
+
+        let p = Payload::from_char('C');
+        let mut ii = 0;
+
+        assert_eq!(
+            Dispatcher::is_there_a_free_slot_for(p, &slots, &mut ii),
+            false
+        );
+    }
 }
