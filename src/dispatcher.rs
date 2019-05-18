@@ -8,6 +8,17 @@ impl Dispatcher {
         let mut _debug_carrier_indexer = 0;
         carriers.iter_mut().for_each(|x| {
             match x.state {
+                State::MOVING(_) => match x.payload {
+                    Some(payload) => {
+                        let mut ii: usize = 0;
+                        let is_another_slot =
+                            Dispatcher::is_there_a_free_slot_for(payload, slots, &mut ii);
+                        if is_another_slot {
+                            x.target_slot(ii, &mut slots[ii]);
+                        }
+                    }
+                    None => {}
+                },
                 State::IDLE => {
                     if let (Some(slot_index), possible_target) =
                         Dispatcher::find_slot_with_mismatched_payload_and_free_target(slots)
