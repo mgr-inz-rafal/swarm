@@ -8,30 +8,47 @@ impl Dispatcher {
         let mut _debug_carrier_indexer = 0;
         carriers.iter_mut().for_each(|x| {
             match x.state {
+                State::MOVING(target) => {
+                    if let Some(payload) = x.payload {
+                        if x.temporary_target {
+                            let mut ii: usize = 0;
+                            let is_another_slot =
+                                Dispatcher::is_there_a_free_slot_for(payload, slots, &mut ii);
+                            if is_another_slot && ii != target {
+                                x.target_slot(ii, &mut slots[ii], false);
+                                slots[target].taken_care_of = false;
+                            }
+                        }
+                    }
+                }
                 State::IDLE => {
                     if let (Some(slot_index), possible_target) =
                         Dispatcher::find_slot_with_mismatched_payload_and_free_target(slots)
                     {
-                        x.target_slot(slot_index, &mut slots[slot_index]);
+                        x.target_slot(slot_index, &mut slots[slot_index], false);
                         slots[possible_target].taken_care_of = true;
                         x.reserved_target = Some(possible_target);
                     } else if let Some(slot_index) =
                         Dispatcher::find_slot_with_mismatched_payload(slots)
                     {
-                        x.target_slot(slot_index, &mut slots[slot_index]);
+                        x.target_slot(slot_index, &mut slots[slot_index], false);
                     }
                 }
                 State::LOOKINGFORTARGET => match x.reserved_target {
-                    Some(slot_index) => x.target_slot(slot_index, &mut slots[slot_index]),
+                    Some(slot_index) => x.target_slot(slot_index, &mut slots[slot_index], false),
                     None => match Dispatcher::find_slot_for_target(slots, x.payload) {
-                        Some(slot_index) => x.target_slot(slot_index, &mut slots[slot_index]),
+                        Some(slot_index) => {
+                            x.target_slot(slot_index, &mut slots[slot_index], false)
+                        }
                         None => {
                             x.state = State::NOTARGET;
                         }
                     },
                 },
                 State::NOTARGET => match Dispatcher::find_temporary_slot(slots, x.payload) {
-                    Some(slot_index) => x.target_slot(slot_index, &mut slots[slot_index]),
+                    Some(slot_index) => {
+                        x.target_slot(slot_index, &mut slots[slot_index], true);
+                    }
                     None => {
                         x.state = State::LOOKINGFORTARGET;
                     }

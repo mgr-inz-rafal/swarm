@@ -39,6 +39,7 @@ pub struct Carrier {
     pub(crate) reserved_target: Option<usize>,
     rotation_direction: Option<RotationDirection>,
     idle_rotation_direction: Option<RotationDirection>,
+    pub(crate) temporary_target: bool,
 }
 
 impl Carrier {
@@ -51,6 +52,7 @@ impl Carrier {
             reserved_target: None,
             rotation_direction: None,
             idle_rotation_direction: Carrier::pick_random_idle_rotation(),
+            temporary_target: false,
         }
     }
 
@@ -63,9 +65,10 @@ impl Carrier {
         }
     }
 
-    pub(crate) fn target_slot(&mut self, target: usize, slot: &mut Slot) {
+    pub(crate) fn target_slot(&mut self, target: usize, slot: &mut Slot, is_temporary: bool) {
         self.state = State::TARGETING(target);
         slot.taken_care_of = true;
+        self.temporary_target = is_temporary;
     }
 
     pub fn get_payload(&self) -> Option<Payload> {
