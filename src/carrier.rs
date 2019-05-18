@@ -1,8 +1,11 @@
 #![macro_use]
 
+extern crate rand;
+
 use super::payload::*;
 use super::position::*;
 use super::slot::*;
+use rand::Rng;
 
 const ANGLE_INCREMENT: f64 = 0.05;
 const SPEED_FACTOR: f64 = 2.0;
@@ -35,6 +38,7 @@ pub struct Carrier {
     pub(crate) payload: Option<Payload>,
     pub(crate) reserved_target: Option<usize>,
     rotation_direction: Option<RotationDirection>,
+    idle_rotation_direction: Option<RotationDirection>,
 }
 
 impl Carrier {
@@ -46,6 +50,16 @@ impl Carrier {
             payload: None,
             reserved_target: None,
             rotation_direction: None,
+            idle_rotation_direction: Carrier::pick_random_idle_rotation(),
+        }
+    }
+
+    fn pick_random_idle_rotation() -> Option<RotationDirection> {
+        let mut rng = rand::thread_rng();
+        match rng.gen_range(0, 2) {
+            0 => Some(RotationDirection::CLOCKWISE),
+            1 => Some(RotationDirection::COUNTERCLOCKWISE),
+            _ => panic!("Random generator bug?"),
         }
     }
 
@@ -76,6 +90,15 @@ impl Carrier {
 
     fn rotate(&mut self) {
         if let Some(direction) = self.rotation_direction {
+            match direction {
+                RotationDirection::CLOCKWISE => self.angle += ANGLE_INCREMENT,
+                RotationDirection::COUNTERCLOCKWISE => self.angle -= ANGLE_INCREMENT,
+            }
+        }
+    }
+
+    fn idle_rotate(&mut self) {
+        if let Some(direction) = self.idle_rotation_direction {
             match direction {
                 RotationDirection::CLOCKWISE => self.angle += ANGLE_INCREMENT,
                 RotationDirection::COUNTERCLOCKWISE => self.angle -= ANGLE_INCREMENT,
@@ -183,11 +206,12 @@ impl Carrier {
                 self.payload = None;
                 self.reserved_target = None;
                 self.state = State::IDLE;
+                self.idle_rotation_direction = Carrier::pick_random_idle_rotation();
                 slots[target].taken_care_of = false;
             }
             State::IDLE | State::NOTARGET => {
                 self.move_forward();
-                self.rotate();
+                self.idle_rotate();
             }
             _ => {}
         }
