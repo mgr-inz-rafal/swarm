@@ -104,3 +104,45 @@ impl Dispatcher {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::payload::*;
+
+    #[test]
+    fn find_slot_for_target() {
+        make_carrier!(0.0, 0.0);
+        let slots = vec![make_slot!(
+            100.0,
+            100.0,
+            Some(Payload::from_char('X')),
+            Some(Payload::from_char('Y'))
+        )];
+
+        assert_eq!(1, 1);
+
+        /*
+        game.add_slot(make_slot!(
+            100.0,
+            100.0,
+            Some(Payload::from_char('X')),
+            Some(Payload::from_char('Y'))
+        ));
+        game.add_slot(make_slot!(
+            100.0,
+            100.0,
+            None,
+            Some(Payload::from_char('Z'))
+        ));
+
+        game.tick();
+
+        let carriers = game.get_carriers();
+
+        assert_eq!(
+            Dispatcher::find_slot_for_target(&game.slots, Some(Payload::from_char('Z'))),
+            Some(1)
+        )
+        */
+    }
+}

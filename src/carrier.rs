@@ -1,3 +1,5 @@
+#![macro_use]
+
 use super::payload::*;
 use super::position::*;
 use super::slot::*;

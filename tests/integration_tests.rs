@@ -1,6 +1,6 @@
 #[macro_use(make_carrier, make_slot)]
 extern crate swarm;
-use swarm::{Carrier, Payload, Slot, State, RotationDirection};
+use swarm::{Carrier, Payload, Slot, State};
 
 #[test]
 fn conduct_to_targetting() {
@@ -8,7 +8,12 @@ fn conduct_to_targetting() {
 
     game.add_carrier(make_carrier!(0.0, 0.0));
     game.add_carrier(make_carrier!(0.0, 0.0));
-    game.add_slot(make_slot!(100.0, 100.0, Some(Payload::from_char('X')), None));
+    game.add_slot(make_slot!(
+        100.0,
+        100.0,
+        Some(Payload::from_char('X')),
+        None
+    ));
 
     game.tick();
 
@@ -22,28 +27,6 @@ fn conduct_to_targetting() {
     } else {
         panic!("Found Carrier that is 'targetting' but has no target set")
     }
-}
-
-#[test]
-fn find_slot_for_target() {
-    let mut game = new();
-
-    game.add_slot(make_slot!(
-        100.0,
-        100.0,
-        Some(Payload::from_char('X')),
-        Some(Payload::from_char('Y'))
-    ));
-    game.add_slot(make_slot!(100.0, 100.0, None, Some(Payload::from_char('Z'))));
-
-    game.tick();
-
-    let carriers = game.get_carriers();
-    
-    assert_eq!(
-        Dispatcher::find_slot_for_target(&game.slots, Some(Payload::from_char('Z'))),
-        Some(1)
-    )
 }
 
 /*

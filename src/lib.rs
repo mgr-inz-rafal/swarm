@@ -1,3 +1,6 @@
+#[macro_use]
+mod macros;
+
 mod carrier;
 mod dispatcher;
 mod payload;
@@ -11,20 +14,6 @@ pub use slot::*;
 
 #[macro_use]
 extern crate approx;
-
-#[macro_export]
-macro_rules! make_carrier {
-    ($x: expr, $y: expr) => {
-        Carrier::new($x, $y)
-    };
-}
-
-#[macro_export]
-macro_rules! make_slot {
-    ($x: expr, $y: expr, $cp: expr, $tp: expr) => {
-        Slot::new($x, $y, $cp, $tp)
-    };
-}
 
 fn _debug_dump_slots(slots: &[Slot]) {
     for (i, v) in slots.iter().enumerate() {
