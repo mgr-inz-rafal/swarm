@@ -2,24 +2,35 @@ use super::payload::*;
 use super::position::*;
 
 #[derive(Copy, Clone)]
+pub enum SlotKind {
+    CLASSIC,
+    PIT,
+    SPAWNER,
+}
+
+#[derive(Copy, Clone)]
 pub struct Slot {
     pos: Position,
     pub(crate) current_payload: Option<Payload>,
     target_payload: Option<Payload>,
     pub(crate) taken_care_of: bool,
+    kind: SlotKind,
 }
+
 impl Slot {
     pub fn new(
         x: f64,
         y: f64,
         current_payload: Option<Payload>,
         target_payload: Option<Payload>,
+        kind: SlotKind,
     ) -> Slot {
         Slot {
             pos: Position::new(x, y),
             current_payload,
             target_payload,
             taken_care_of: false,
+            kind,
         }
     }
     pub fn get_position(&self) -> &Position {
