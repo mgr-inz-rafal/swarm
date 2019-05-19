@@ -1,6 +1,6 @@
 #[macro_use(make_carrier, make_slot)]
 extern crate swarm;
-use swarm::{Carrier, Payload, Slot, State};
+use swarm::{Carrier, Payload, Slot, SlotKind, State};
 
 #[test]
 fn conduct_to_targetting() {
