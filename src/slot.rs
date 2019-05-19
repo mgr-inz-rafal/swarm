@@ -1,7 +1,7 @@
 use super::payload::*;
 use super::position::*;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub enum SlotKind {
     CLASSIC,
     PIT,
@@ -47,5 +47,9 @@ impl Slot {
 
     pub(crate) fn accepts(&self, p: Option<Payload>) -> bool {
         self.target_payload == p
+    }
+
+    pub fn is_pit(&self) -> bool {
+        self.kind == SlotKind::PIT
     }
 }
