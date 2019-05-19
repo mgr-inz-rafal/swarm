@@ -68,6 +68,7 @@ impl Carrier {
     pub(crate) fn target_slot(&mut self, target: usize, slot: &mut Slot, is_temporary: bool) {
         self.state = State::TARGETING(target);
         slot.taken_care_of = true;
+        self.rotation_direction = None;
         self.temporary_target = is_temporary;
     }
 
