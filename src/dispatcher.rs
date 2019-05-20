@@ -2,9 +2,21 @@ use super::carrier::*;
 use super::payload::*;
 use super::slot::*;
 
-pub struct Dispatcher {}
+// TODO: type of cargo must be injected by the external caller and not hardcoded to 'char'
+pub struct Dispatcher {
+    pub(crate) used_target_cargos: Vec<char>,
+}
+
 impl Dispatcher {
-    pub(crate) fn conduct(carriers: &mut Vec<Carrier>, slots: &mut Vec<Slot>) {
+    fn collect_all_used_target_cargos(&mut self, slots: &[Slot]) {
+        self.used_target_cargos.clear();
+    }
+
+    pub(crate) fn precalc(&mut self, slots: &[Slot]) {
+        self.collect_all_used_target_cargos(slots);
+    }
+
+    pub(crate) fn conduct(&self, carriers: &mut Vec<Carrier>, slots: &mut Vec<Slot>) {
         let mut _debug_carrier_indexer = 0;
         carriers.iter_mut().for_each(|x| {
             match x.state {
@@ -13,7 +25,7 @@ impl Dispatcher {
                         if x.temporary_target {
                             let mut ii: usize = 0;
                             let is_another_slot =
-                                Dispatcher::is_there_a_free_slot_for(payload, slots, &mut ii);
+                                self.is_there_a_free_slot_for(payload, slots, &mut ii);
                             if is_another_slot && ii != target {
                                 x.target_slot(ii, &mut slots[ii], false);
                                 slots[target].taken_care_of = false;
@@ -22,21 +34,23 @@ impl Dispatcher {
                     }
                 }
                 State::IDLE => {
-                    if let (Some(slot_index), possible_target) =
-                        Dispatcher::find_slot_with_mismatched_payload_and_free_target(slots)
+                    if let Some(slot_index) =
+                        self.find_slot_with_payload_that_should_go_to_the_pit(slots)
+                    {
+                        x.target_slot(slot_index, &mut slots[slot_index], false);
+                    } else if let (Some(slot_index), possible_target) =
+                        self.find_slot_with_mismatched_payload_and_free_target(slots)
                     {
                         x.target_slot(slot_index, &mut slots[slot_index], false);
                         slots[possible_target].taken_care_of = true;
                         x.reserved_target = Some(possible_target);
-                    } else if let Some(slot_index) =
-                        Dispatcher::find_slot_with_mismatched_payload(slots)
-                    {
+                    } else if let Some(slot_index) = self.find_slot_with_mismatched_payload(slots) {
                         x.target_slot(slot_index, &mut slots[slot_index], false);
                     }
                 }
                 State::LOOKINGFORTARGET => match x.reserved_target {
                     Some(slot_index) => x.target_slot(slot_index, &mut slots[slot_index], false),
-                    None => match Dispatcher::find_slot_for_target(slots, x.payload) {
+                    None => match self.find_slot_for_target(slots, x.payload) {
                         Some(slot_index) => {
                             x.target_slot(slot_index, &mut slots[slot_index], false)
                         }
@@ -45,7 +59,7 @@ impl Dispatcher {
                         }
                     },
                 },
-                State::NOTARGET => match Dispatcher::find_temporary_slot(slots, x.payload) {
+                State::NOTARGET => match self.find_temporary_slot(slots, x.payload) {
                     Some(slot_index) => {
                         x.target_slot(slot_index, &mut slots[slot_index], true);
                     }
@@ -59,7 +73,11 @@ impl Dispatcher {
         });
     }
 
-    fn is_there_a_free_slot_for(payload: Payload, slots: &[Slot], ii: &mut usize) -> bool {
+    fn find_slot_with_payload_that_should_go_to_the_pit(&self, slots: &[Slot]) -> Option<usize> {
+        None
+    }
+
+    fn is_there_a_free_slot_for(&self, payload: Payload, slots: &[Slot], ii: &mut usize) -> bool {
         for (i, v) in slots.iter().enumerate() {
             let [current, target] = v.get_payloads();
             if current == None && target != None && !v.taken_care_of && target.unwrap() == payload {
@@ -71,27 +89,34 @@ impl Dispatcher {
         false
     }
 
-    fn find_slot_with_mismatched_payload_and_free_target(slots: &[Slot]) -> (Option<usize>, usize) {
+    fn find_slot_with_mismatched_payload_and_free_target(
+        &self,
+        slots: &[Slot],
+    ) -> (Option<usize>, usize) {
         let mut ii: usize = 0; // TODO: Make this an Option
         let found = slots.iter().position(|x| {
             let [current, target] = x.get_payloads();
             current != None
                 && current != target
                 && !x.taken_care_of
-                && Dispatcher::is_there_a_free_slot_for(current.unwrap(), slots, &mut ii)
+                && self.is_there_a_free_slot_for(current.unwrap(), slots, &mut ii)
         });
 
         (found, ii)
     }
 
-    fn find_slot_with_mismatched_payload(slots: &[Slot]) -> Option<usize> {
+    fn find_slot_with_mismatched_payload(&self, slots: &[Slot]) -> Option<usize> {
         slots.iter().position(|x| {
             let [current, target] = x.get_payloads();
             current != None && current != target && !x.taken_care_of
         })
     }
 
-    fn find_slot_for_target(slots: &[Slot], target_payload: Option<Payload>) -> Option<usize> {
+    fn find_slot_for_target(
+        &self,
+        slots: &[Slot],
+        target_payload: Option<Payload>,
+    ) -> Option<usize> {
         let t = target_payload.expect("Trying to find slot for empty target");
 
         if let Some((index, _)) = slots.iter().enumerate().find(|(index, _)| {
@@ -107,7 +132,7 @@ impl Dispatcher {
         }
     }
 
-    fn find_temporary_slot(slots: &[Slot], target: Option<Payload>) -> Option<usize> {
+    fn find_temporary_slot(&self, slots: &[Slot], target: Option<Payload>) -> Option<usize> {
         let t = target.expect("Trying to find slot for empty target");
 
         if let Some((index, _)) = slots.iter().enumerate().find(|(index, _)| {
