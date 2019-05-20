@@ -4,16 +4,36 @@ use super::slot::*;
 
 // TODO: type of cargo must be injected by the external caller and not hardcoded to 'char'
 pub struct Dispatcher {
-    pub(crate) used_target_cargos: Vec<char>,
+    pub(crate) excessive_cargos: Vec<char>, // These may be dropped into the pit
 }
 
 impl Dispatcher {
-    fn collect_all_used_target_cargos(&mut self, slots: &[Slot]) {
-        self.used_target_cargos.clear();
+    fn determine_excessive_cargos(&mut self, slots: &[Slot]) {
+        self.excessive_cargos.clear();
+
+        let mut all_sources: Vec<char> = Vec::new();
+        let mut all_targets: Vec<char> = Vec::new();
+        slots.iter().for_each(|x| {
+            let payloads = x.get_payloads();
+            if let Some(payload) = payloads[0] {
+                all_sources.push(payload.cargo)
+            }
+            if let Some(payload) = payloads[1] {
+                all_targets.push(payload.cargo)
+            }
+        });
+
+        /*
+        let dupa = all_sources
+            .drain_filter(|x| !all_targets.contains(x))
+            .collect::<Vec<_>>();
+            */
+
+        println!("{:?}", all_sources);
     }
 
     pub(crate) fn precalc(&mut self, slots: &[Slot]) {
-        self.collect_all_used_target_cargos(slots);
+        self.determine_excessive_cargos(slots);
     }
 
     pub(crate) fn conduct(&self, carriers: &mut Vec<Carrier>, slots: &mut Vec<Slot>) {

@@ -54,7 +54,7 @@ impl Swarm {
             slots: Vec::new(),
             first_tick: true,
             dispatcher: Dispatcher {
-                used_target_cargos: Vec::new(),
+                excessive_cargos: Vec::new(),
             },
         }
     }
@@ -83,6 +83,7 @@ impl Swarm {
         let mut slots = &mut self.slots;
         if self.first_tick {
             self.dispatcher.precalc(&slots);
+            self.first_tick = false;
         }
         self.dispatcher.conduct(&mut self.carriers, &mut slots);
         self.carriers.iter_mut().for_each(|x| x.tick(slots));
