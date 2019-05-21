@@ -167,6 +167,9 @@ mod tests {
 
     #[test]
     fn find_slot_for_target() {
+        let dispatcher = Dispatcher {
+            cargo_balance: HashMap::new(),
+        };
         let slots = vec![
             make_slot!(
                 100.0,
@@ -178,24 +181,30 @@ mod tests {
         ];
 
         assert_eq!(
-            Dispatcher::find_slot_for_target(&slots, Some(Payload::from_char('B'))),
+            dispatcher.find_slot_for_target(&slots, Some(Payload::from_char('B'))),
             Some(1)
         )
     }
 
     #[test]
     fn find_mismatched_slot1() {
+        let dispatcher = Dispatcher {
+            cargo_balance: HashMap::new(),
+        };
         let slots = vec![
             make_slot!(100.0, 100.0, None, Some(Payload::from_char('X'))),
             make_slot!(100.0, 100.0, None, Some(Payload::from_char('Y'))),
         ];
 
         // Slot without current payload cannot have mismatched payload
-        assert_eq!(Dispatcher::find_slot_with_mismatched_payload(&slots), None)
+        assert_eq!(dispatcher.find_slot_with_mismatched_payload(&slots), None)
     }
 
     #[test]
     fn find_mismatched_slot2() {
+        let dispatcher = Dispatcher {
+            cargo_balance: HashMap::new(),
+        };
         let slots = vec![
             make_slot!(
                 100.0,
@@ -212,13 +221,16 @@ mod tests {
         ];
 
         assert_eq!(
-            Dispatcher::find_slot_with_mismatched_payload(&slots),
+            dispatcher.find_slot_with_mismatched_payload(&slots),
             Some(1)
         )
     }
 
     #[test]
     fn find_mismatched_slot3() {
+        let dispatcher = Dispatcher {
+            cargo_balance: HashMap::new(),
+        };
         let slots = vec![
             make_slot!(
                 100.0,
@@ -234,11 +246,14 @@ mod tests {
             ),
         ];
 
-        assert_eq!(Dispatcher::find_slot_with_mismatched_payload(&slots), None)
+        assert_eq!(dispatcher.find_slot_with_mismatched_payload(&slots), None)
     }
 
     #[test]
     fn find_mismatched_slot_with_target1() {
+        let dispatcher = Dispatcher {
+            cargo_balance: HashMap::new(),
+        };
         let slots = vec![
             make_slot!(
                 100.0,
@@ -255,13 +270,16 @@ mod tests {
         ];
 
         assert_eq!(
-            Dispatcher::find_slot_with_mismatched_payload_and_free_target(&slots),
+            dispatcher.find_slot_with_mismatched_payload_and_free_target(&slots),
             (None, 0)
         )
     }
 
     #[test]
     fn find_mismatched_slot_with_target2() {
+        let dispatcher = Dispatcher {
+            cargo_balance: HashMap::new(),
+        };
         let slots = vec![
             make_slot!(
                 100.0,
@@ -273,13 +291,16 @@ mod tests {
         ];
 
         assert_eq!(
-            Dispatcher::find_slot_with_mismatched_payload_and_free_target(&slots),
+            dispatcher.find_slot_with_mismatched_payload_and_free_target(&slots),
             (None, 0)
         )
     }
 
     #[test]
     fn find_mismatched_slot_with_target3() {
+        let dispatcher = Dispatcher {
+            cargo_balance: HashMap::new(),
+        };
         let slots = vec![
             make_slot!(
                 100.0,
@@ -291,13 +312,16 @@ mod tests {
         ];
 
         assert_eq!(
-            Dispatcher::find_slot_with_mismatched_payload_and_free_target(&slots),
+            dispatcher.find_slot_with_mismatched_payload_and_free_target(&slots),
             (Some(0), 1)
         )
     }
 
     #[test]
     fn is_there_a_free_slot_for1() {
+        let dispatcher = Dispatcher {
+            cargo_balance: HashMap::new(),
+        };
         let slots = vec![
             make_slot!(
                 100.0,
@@ -312,7 +336,7 @@ mod tests {
         let mut ii = 0;
 
         assert_eq!(
-            Dispatcher::is_there_a_free_slot_for(p, &slots, &mut ii),
+            dispatcher.is_there_a_free_slot_for(p, &slots, &mut ii),
             true
         );
         assert_eq!(ii, 1)
@@ -320,6 +344,9 @@ mod tests {
 
     #[test]
     fn is_there_a_free_slot_for2() {
+        let dispatcher = Dispatcher {
+            cargo_balance: HashMap::new(),
+        };
         let slots = vec![
             make_slot!(
                 100.0,
@@ -334,7 +361,7 @@ mod tests {
         let mut ii = 0;
 
         assert_eq!(
-            Dispatcher::is_there_a_free_slot_for(p, &slots, &mut ii),
+            dispatcher.is_there_a_free_slot_for(p, &slots, &mut ii),
             false
         );
     }
