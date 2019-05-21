@@ -614,4 +614,30 @@ mod tests {
         );
     }
 
+    #[test]
+    fn find_slot_that_contains() {
+        let dispatcher = Dispatcher {
+            cargo_balance: HashMap::new(),
+        };
+        let slots = vec![
+            make_slot!(
+                100.0,
+                100.0,
+                Some(Payload::from_char('X')),
+                Some(Payload::from_char('B'))
+            ),
+            make_slot!(100.0, 100.0, None, Some(Payload::from_char('B'))),
+            make_slot!(
+                100.0,
+                100.0,
+                Some(Payload::from_char('A')),
+                Some(Payload::from_char('B'))
+            ),
+        ];
+
+        assert_eq!(dispatcher.find_slot_that_contains(&slots, 'A'), Some(2));
+        assert_eq!(dispatcher.find_slot_that_contains(&slots, 'X'), Some(0));
+        assert_eq!(dispatcher.find_slot_that_contains(&slots, 'Y'), None);
+    }
+
 }
