@@ -502,4 +502,39 @@ mod tests {
         assert_eq!(dispatcher.cargo_balance[&'G'], -3);
     }
 
+    #[test]
+    fn find_pit1() {
+        let dispatcher = Dispatcher {
+            cargo_balance: HashMap::new(),
+        };
+        let slots = vec![
+            make_slot!(
+                100.0,
+                100.0,
+                Some(Payload::from_char('A')),
+                Some(Payload::from_char('B'))
+            ),
+            make_slot!(100.0, 100.0, None, Some(Payload::from_char('C'))),
+        ];
+
+        assert_eq!(dispatcher.find_pit(&slots), None);
+    }
+
+    #[test]
+    fn find_pit2() {
+        let dispatcher = Dispatcher {
+            cargo_balance: HashMap::new(),
+        };
+        let slots = vec![
+            make_slot!(
+                100.0,
+                100.0,
+                Some(Payload::from_char('A')),
+                Some(Payload::from_char('B'))
+            ),
+            make_slot_pit!(100.0, 100.0),
+        ];
+
+        assert_eq!(dispatcher.find_pit(&slots), Some(1));
+    }
 }
