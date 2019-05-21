@@ -115,7 +115,7 @@ impl Dispatcher {
     }
 
     fn find_slot_with_payload_that_should_go_to_the_pit(&self, slots: &[Slot]) -> Option<usize> {
-        let excessive = self.cargo_balance.iter().find(|&(_, v)| *v > 0);
+        let excessive = self.cargo_balance.iter().find(|&(_, &v)| v > 0);
         if let Some(cargo) = excessive {
             if let Some(slot_index) = self.find_slot_that_contains(slots, *cargo.0) {
                 if !slots[slot_index].taken_care_of {
