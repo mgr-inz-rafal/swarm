@@ -1,39 +1,33 @@
+use std::collections::HashMap;
+
 use super::carrier::*;
 use super::payload::*;
 use super::slot::*;
 
 // TODO: type of cargo must be injected by the external caller and not hardcoded to 'char'
 pub struct Dispatcher {
-    pub(crate) excessive_cargos: Vec<char>, // These may be dropped into the pit
+    pub(crate) cargo_balance: HashMap<char, i32>,
 }
 
 impl Dispatcher {
-    fn determine_excessive_cargos(&mut self, slots: &[Slot]) {
-        self.excessive_cargos.clear();
+    fn calculate_cargo_balance(&mut self, slots: &[Slot]) {
+        self.cargo_balance.clear();
 
-        let mut all_sources: Vec<char> = Vec::new();
-        let mut all_targets: Vec<char> = Vec::new();
         slots.iter().for_each(|x| {
             let payloads = x.get_payloads();
             if let Some(payload) = payloads[0] {
-                all_sources.push(payload.cargo)
+                *self.cargo_balance.entry(payload.cargo).or_insert(0) += 1;
             }
             if let Some(payload) = payloads[1] {
-                all_targets.push(payload.cargo)
+                *self.cargo_balance.entry(payload.cargo).or_insert(0) -= 1;
             }
         });
-
-        /*
-        let dupa = all_sources
-            .drain_filter(|x| !all_targets.contains(x))
-            .collect::<Vec<_>>();
-            */
-
-        println!("{:?}", all_sources);
+        self.cargo_balance.retain(|_, v| *v != 0);
+        println!("{:?}", self.cargo_balance);
     }
 
     pub(crate) fn precalc(&mut self, slots: &[Slot]) {
-        self.determine_excessive_cargos(slots);
+        self.calculate_cargo_balance(slots);
     }
 
     pub(crate) fn conduct(&self, carriers: &mut Vec<Carrier>, slots: &mut Vec<Slot>) {

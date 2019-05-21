@@ -7,6 +7,8 @@ mod payload;
 mod position;
 mod slot;
 
+use std::collections::HashMap;
+
 pub use carrier::*;
 pub use dispatcher::*;
 pub use payload::*;
@@ -54,7 +56,7 @@ impl Swarm {
             slots: Vec::new(),
             first_tick: true,
             dispatcher: Dispatcher {
-                excessive_cargos: Vec::new(),
+                cargo_balance: HashMap::new(),
             },
         }
     }
