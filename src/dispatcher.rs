@@ -365,4 +365,47 @@ mod tests {
             false
         );
     }
+
+    #[test]
+    fn calculate_cargo_balance() {
+        let mut dispatcher = Dispatcher {
+            cargo_balance: HashMap::new(),
+        };
+        let slots = vec![
+            make_slot!(
+                100.0,
+                100.0,
+                Some(Payload::from_char('A')),
+                Some(Payload::from_char('C'))
+            ),
+            make_slot!(
+                100.0,
+                100.0,
+                Some(Payload::from_char('C')),
+                Some(Payload::from_char('A'))
+            ),
+            make_slot!(
+                100.0,
+                100.0,
+                Some(Payload::from_char('E')),
+                Some(Payload::from_char('E'))
+            ),
+            make_slot!(
+                100.0,
+                100.0,
+                Some(Payload::from_char('E')),
+                Some(Payload::from_char('F'))
+            ),
+            make_slot!(100.0, 100.0, None, Some(Payload::from_char('G'))),
+            make_slot!(100.0, 100.0, None, Some(Payload::from_char('G'))),
+        ];
+
+        dispatcher.calculate_cargo_balance(&slots);
+
+        assert_eq!(dispatcher.cargo_balance.get(&'A'), None);
+        assert_eq!(dispatcher.cargo_balance.get(&'C'), None);
+        assert_eq!(dispatcher.cargo_balance[&'E'], 1);
+        assert_eq!(dispatcher.cargo_balance[&'F'], -1);
+        assert_eq!(dispatcher.cargo_balance[&'G'], -2);
+    }
 }
