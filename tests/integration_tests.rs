@@ -1,6 +1,6 @@
 #[macro_use(make_carrier, make_slot)]
 extern crate swarm;
-use swarm::{Carrier, Payload, Slot, State};
+use swarm::{Carrier, Payload, Slot, SlotKind, State};
 
 #[test]
 fn conduct_to_targetting() {
@@ -13,6 +13,12 @@ fn conduct_to_targetting() {
         100.0,
         Some(Payload::from_char('X')),
         None
+    ));
+    game.add_slot(make_slot!(
+        100.0,
+        100.0,
+        None,
+        Some(Payload::from_char('X'))
     ));
 
     game.tick();

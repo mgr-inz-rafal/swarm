@@ -7,6 +7,8 @@ mod payload;
 mod position;
 mod slot;
 
+use std::collections::HashMap;
+
 pub use carrier::*;
 pub use dispatcher::*;
 pub use payload::*;
@@ -24,7 +26,8 @@ fn _debug_dump_slots(slots: &[Slot]) {
             None => print!("None "),
         }
 
-        match slots[i].target_payload {
+        let [_, target] = v.get_payloads();
+        match target {
             Some(p) => print!("    {} ", p.cargo),
             None => print!("    None "),
         }
@@ -38,6 +41,8 @@ fn _debug_dump_slots(slots: &[Slot]) {
 pub struct Swarm {
     carriers: Vec<Carrier>,
     slots: Vec<Slot>,
+    first_tick: bool,
+    dispatcher: Dispatcher,
 }
 
 pub fn new() -> Swarm {
@@ -49,6 +54,10 @@ impl Swarm {
         Swarm {
             carriers: Vec::new(),
             slots: Vec::new(),
+            first_tick: true,
+            dispatcher: Dispatcher {
+                cargo_balance: HashMap::new(),
+            },
         }
     }
 
@@ -74,7 +83,11 @@ impl Swarm {
 
     pub fn tick(&mut self) {
         let mut slots = &mut self.slots;
-        Dispatcher::conduct(&mut self.carriers, &mut slots);
+        if self.first_tick {
+            self.dispatcher.precalc(&slots);
+            self.first_tick = false;
+        }
+        self.dispatcher.conduct(&mut self.carriers, &mut slots);
         self.carriers.iter_mut().for_each(|x| x.tick(slots));
     }
 }
