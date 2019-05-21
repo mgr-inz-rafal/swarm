@@ -40,6 +40,7 @@ pub struct Carrier {
     rotation_direction: Option<RotationDirection>,
     idle_rotation_direction: Option<RotationDirection>,
     pub(crate) temporary_target: bool,
+    pub(crate) carrying_to_pit: bool,
 }
 
 impl Carrier {
@@ -53,6 +54,7 @@ impl Carrier {
             rotation_direction: None,
             idle_rotation_direction: Carrier::pick_random_idle_rotation(),
             temporary_target: false,
+            carrying_to_pit: false,
         }
     }
 
@@ -65,11 +67,18 @@ impl Carrier {
         }
     }
 
-    pub(crate) fn target_slot(&mut self, target: usize, slot: &mut Slot, is_temporary: bool) {
+    pub(crate) fn target_slot(
+        &mut self,
+        target: usize,
+        slot: &mut Slot,
+        is_temporary: bool,
+        to_pit: bool,
+    ) {
         self.state = State::TARGETING(target);
         slot.taken_care_of = true;
         self.rotation_direction = None;
         self.temporary_target = is_temporary;
+        self.carrying_to_pit = to_pit;
     }
 
     pub fn get_payload(&self) -> Option<Payload> {
@@ -206,12 +215,14 @@ impl Carrier {
                 }
             }
             State::PUTTINGDOWN(target) => {
-                slots[target].current_payload = self.payload;
+                if !self.carrying_to_pit {
+                    slots[target].current_payload = self.payload;
+                    self.reserved_target = None;
+                    slots[target].taken_care_of = false;
+                }
                 self.payload = None;
-                self.reserved_target = None;
                 self.state = State::IDLE;
                 self.idle_rotation_direction = Carrier::pick_random_idle_rotation();
-                slots[target].taken_care_of = false;
             }
             State::IDLE | State::NOTARGET => {
                 self.move_forward();

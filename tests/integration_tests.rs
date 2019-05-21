@@ -14,6 +14,12 @@ fn conduct_to_targetting() {
         Some(Payload::from_char('X')),
         None
     ));
+    game.add_slot(make_slot!(
+        100.0,
+        100.0,
+        None,
+        Some(Payload::from_char('X'))
+    ));
 
     game.tick();
 
