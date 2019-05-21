@@ -537,4 +537,81 @@ mod tests {
 
         assert_eq!(dispatcher.find_pit(&slots), Some(1));
     }
+
+    #[test]
+    fn find_slot_with_payload_that_should_go_to_the_pit1() {
+        let mut dispatcher = Dispatcher {
+            cargo_balance: HashMap::new(),
+        };
+        let slots = vec![
+            make_slot!(
+                100.0,
+                100.0,
+                Some(Payload::from_char('A')),
+                Some(Payload::from_char('C'))
+            ),
+            make_slot!(
+                100.0,
+                100.0,
+                Some(Payload::from_char('C')),
+                Some(Payload::from_char('A'))
+            ),
+            make_slot!(
+                100.0,
+                100.0,
+                Some(Payload::from_char('E')),
+                Some(Payload::from_char('E'))
+            ),
+            make_slot!(
+                100.0,
+                100.0,
+                Some(Payload::from_char('E')),
+                Some(Payload::from_char('F'))
+            ),
+            make_slot!(100.0, 100.0, None, Some(Payload::from_char('G'))),
+            make_slot!(100.0, 100.0, None, Some(Payload::from_char('G'))),
+        ];
+
+        dispatcher.calculate_cargo_balance(&slots);
+        assert_eq!(
+            dispatcher.find_slot_with_payload_that_should_go_to_the_pit(&slots),
+            Some(2)
+        );
+    }
+
+    #[test]
+    fn find_slot_with_payload_that_should_go_to_the_pit2() {
+        let mut dispatcher = Dispatcher {
+            cargo_balance: HashMap::new(),
+        };
+        let slots = vec![
+            make_slot!(
+                100.0,
+                100.0,
+                Some(Payload::from_char('A')),
+                Some(Payload::from_char('C'))
+            ),
+            make_slot!(
+                100.0,
+                100.0,
+                Some(Payload::from_char('C')),
+                Some(Payload::from_char('A'))
+            ),
+            make_slot!(
+                100.0,
+                100.0,
+                Some(Payload::from_char('E')),
+                Some(Payload::from_char('E'))
+            ),
+            make_slot!(100.0, 100.0, None, Some(Payload::from_char('G'))),
+            make_slot!(100.0, 100.0, None, Some(Payload::from_char('G'))),
+        ];
+
+        dispatcher.calculate_cargo_balance(&slots);
+        assert_eq!(
+            dispatcher.find_slot_with_payload_that_should_go_to_the_pit(&slots),
+            None
+        );
+    }
+
 }
