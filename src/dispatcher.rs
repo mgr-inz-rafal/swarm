@@ -15,11 +15,10 @@ impl Dispatcher {
 
         slots.iter().for_each(|x| {
             let payloads = x.get_payloads();
-            if let Some(payload) = payloads[0] {
-                *self.cargo_balance.entry(payload.cargo).or_insert(0) += 1;
-            }
-            if let Some(payload) = payloads[1] {
-                *self.cargo_balance.entry(payload.cargo).or_insert(0) -= 1;
+            for (i, _) in payloads.iter().enumerate() {
+                if let Some(payload) = payloads[i] {
+                    *self.cargo_balance.entry(payload.cargo).or_insert(0) += i as i32 * -2 + 1;
+                }
             }
         });
         self.cargo_balance.retain(|_, v| *v != 0);
