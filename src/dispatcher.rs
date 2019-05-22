@@ -39,7 +39,7 @@ impl Dispatcher {
                             let is_another_slot =
                                 self.is_there_a_free_slot_for(payload, slots, &mut ii);
                             if is_another_slot && ii != target {
-                                x.target_slot(ii, &mut slots[ii], false, false);
+                                x.target_slot(ii, &mut slots[ii], false, false, (false, None));
                                 slots[target].taken_care_of = false;
                             }
                         }
@@ -50,7 +50,13 @@ impl Dispatcher {
                         self.find_slot_with_payload_that_should_go_to_the_pit(slots)
                     {
                         if let Some(pit_index) = self.find_pit(slots) {
-                            x.target_slot(slot_index, &mut slots[slot_index], false, true);
+                            x.target_slot(
+                                slot_index,
+                                &mut slots[slot_index],
+                                false,
+                                true,
+                                (false, None),
+                            );
                             x.reserved_target = Some(pit_index);
                             self.reduce_cargo_balance(
                                 slots[slot_index].get_payloads()[0].unwrap().cargo,
@@ -59,11 +65,33 @@ impl Dispatcher {
                     } else if let (Some(slot_index), possible_target) =
                         self.find_slot_with_mismatched_payload_and_free_target(slots)
                     {
-                        x.target_slot(slot_index, &mut slots[slot_index], false, false);
+                        x.target_slot(
+                            slot_index,
+                            &mut slots[slot_index],
+                            false,
+                            false,
+                            (false, None),
+                        );
                         slots[possible_target].taken_care_of = true;
                         x.reserved_target = Some(possible_target);
                     } else if let Some(slot_index) = self.find_slot_with_mismatched_payload(slots) {
-                        x.target_slot(slot_index, &mut slots[slot_index], false, false);
+                        x.target_slot(
+                            slot_index,
+                            &mut slots[slot_index],
+                            false,
+                            false,
+                            (false, None),
+                        );
+                    } else if let Some(cargo) = self.get_cargo_to_spawn() {
+                        if let Some(slot_index) = self.find_spawner(&slots) {
+                            x.target_slot(
+                                slot_index,
+                                &mut slots[slot_index],
+                                false,
+                                false,
+                                (true, Some(cargo)),
+                            );
+                        }
                     }
                 }
                 State::LOOKINGFORTARGET => match x.reserved_target {
@@ -72,6 +100,7 @@ impl Dispatcher {
                         &mut slots[slot_index],
                         x.temporary_target,
                         x.carrying_to_pit,
+                        x.going_to_spawner,
                     ),
                     None => match self.find_slot_for_target(slots, x.payload) {
                         Some(slot_index) => x.target_slot(
@@ -79,6 +108,7 @@ impl Dispatcher {
                             &mut slots[slot_index],
                             x.temporary_target,
                             x.carrying_to_pit,
+                            x.going_to_spawner,
                         ),
                         None => {
                             x.state = State::NOTARGET;
@@ -87,7 +117,13 @@ impl Dispatcher {
                 },
                 State::NOTARGET => match self.find_temporary_slot(slots, x.payload) {
                     Some(slot_index) => {
-                        x.target_slot(slot_index, &mut slots[slot_index], true, false);
+                        x.target_slot(
+                            slot_index,
+                            &mut slots[slot_index],
+                            true,
+                            false,
+                            (false, None),
+                        );
                     }
                     None => {
                         x.state = State::LOOKINGFORTARGET;
@@ -99,14 +135,39 @@ impl Dispatcher {
         });
     }
 
+    // TODO: type of cargo must be injected by the external caller and not hardcoded to 'char'
+    fn get_cargo_to_spawn(&mut self) -> Option<char> {
+        if self.cargo_balance.is_empty() {
+            return None;
+        }
+        let missing = *self.cargo_balance.keys().next().unwrap();
+        self.increase_cargo_balance(missing);
+        Some(missing)
+    }
+
     fn reduce_cargo_balance(&mut self, cargo: char) {
         *self.cargo_balance.entry(cargo).or_insert(0) -= 1;
+        self.cargo_balance.retain(|_, v| *v != 0);
+    }
+
+    fn increase_cargo_balance(&mut self, cargo: char) {
+        *self.cargo_balance.entry(cargo).or_insert(0) += 1;
         self.cargo_balance.retain(|_, v| *v != 0);
     }
 
     fn find_pit(&self, slots: &[Slot]) -> Option<usize> {
         for (i, v) in slots.iter().enumerate() {
             if v.is_pit() {
+                return Some(i);
+            }
+        }
+        None
+    }
+
+    // TODO: Merge with find_pit
+    fn find_spawner(&self, slots: &[Slot]) -> Option<usize> {
+        for (i, v) in slots.iter().enumerate() {
+            if v.is_spawner() {
                 return Some(i);
             }
         }

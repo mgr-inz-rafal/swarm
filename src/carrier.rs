@@ -41,6 +41,7 @@ pub struct Carrier {
     idle_rotation_direction: Option<RotationDirection>,
     pub(crate) temporary_target: bool,
     pub(crate) carrying_to_pit: bool,
+    pub(crate) going_to_spawner: (bool, Option<char>),
 }
 
 impl Carrier {
@@ -55,6 +56,7 @@ impl Carrier {
             idle_rotation_direction: Carrier::pick_random_idle_rotation(),
             temporary_target: false,
             carrying_to_pit: false,
+            going_to_spawner: (false, None),
         }
     }
 
@@ -73,12 +75,18 @@ impl Carrier {
         slot: &mut Slot,
         is_temporary: bool,
         to_pit: bool,
+        to_spawner: (bool, Option<char>),
     ) {
+        if slot.is_pit() && self.get_payload().is_none() {
+            panic!("Going empty to the pit, will try to pickup");
+        }
+
         self.state = State::TARGETING(target);
         slot.taken_care_of = true;
         self.rotation_direction = None;
         self.temporary_target = is_temporary;
         self.carrying_to_pit = to_pit;
+        self.going_to_spawner = to_spawner;
     }
 
     pub fn get_payload(&self) -> Option<Payload> {
@@ -201,11 +209,24 @@ impl Carrier {
                 }
             }
             State::PICKINGUP(target) => {
-                self.payload = slots[target].current_payload;
+                if slots[target].is_pit() {
+                    panic!("Trying to pick up from the pit");
+                }
+
+                self.payload = if self.going_to_spawner.0 {
+                    Some(Payload::from_char(self.going_to_spawner.1.unwrap()))
+                } else {
+                    slots[target].current_payload
+                };
+
                 if self.payload.is_some() {
                     self.payload = Some(Payload {
                         taken_from: Some(target),
-                        cargo: slots[target].current_payload.unwrap().cargo,
+                        cargo: if self.going_to_spawner.0 {
+                            self.going_to_spawner.1.unwrap()
+                        } else {
+                            slots[target].current_payload.unwrap().cargo
+                        },
                     });
                     slots[target].current_payload = None;
                     slots[target].taken_care_of = false;
@@ -215,11 +236,14 @@ impl Carrier {
                 }
             }
             State::PUTTINGDOWN(target) => {
+                if slots[target].is_spawner() {
+                    panic!("Trying to drop into the spawner");
+                }
                 if !self.carrying_to_pit {
                     slots[target].current_payload = self.payload;
-                    self.reserved_target = None;
                     slots[target].taken_care_of = false;
                 }
+                self.reserved_target = None;
                 self.payload = None;
                 self.state = State::IDLE;
                 self.idle_rotation_direction = Carrier::pick_random_idle_rotation();
