@@ -1,14 +1,14 @@
 use super::payload::*;
 use super::position::*;
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum SlotKind {
     CLASSIC,
     PIT,
     SPAWNER,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Slot {
     pos: Position,
     pub(crate) current_payload: Option<Payload>,
@@ -51,5 +51,9 @@ impl Slot {
 
     pub fn is_pit(&self) -> bool {
         self.kind == SlotKind::PIT
+    }
+
+    pub fn is_spawner(&self) -> bool {
+        self.kind == SlotKind::SPAWNER
     }
 }
