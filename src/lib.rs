@@ -42,7 +42,7 @@ pub struct Swarm {
     carriers: Vec<Carrier<char>>,
     slots: Vec<Slot<char>>,
     first_tick: bool,
-    dispatcher: Dispatcher,
+    dispatcher: Dispatcher<char>,
 }
 
 pub fn new() -> Swarm {

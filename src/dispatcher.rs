@@ -1,16 +1,17 @@
 use std::collections::HashMap;
+use std::hash::Hash;
 
 use super::carrier::*;
 use super::payload::*;
 use super::slot::*;
 
 // TODO: type of cargo must be injected by the external caller and not hardcoded to 'char'
-pub struct Dispatcher {
-    pub(crate) cargo_balance: HashMap<char, i32>,
+pub struct Dispatcher<T: PartialEq + Eq + Hash + Copy> {
+    pub(crate) cargo_balance: HashMap<T, i32>,
 }
 
-impl Dispatcher {
-    fn calculate_cargo_balance(&mut self, slots: &[Slot<char>]) {
+impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
+    fn calculate_cargo_balance(&mut self, slots: &[Slot<T>]) {
         self.cargo_balance.clear();
 
         slots.iter().for_each(|x| {
@@ -24,15 +25,11 @@ impl Dispatcher {
         self.cargo_balance.retain(|_, v| *v != 0);
     }
 
-    pub(crate) fn precalc(&mut self, slots: &[Slot<char>]) {
+    pub(crate) fn precalc(&mut self, slots: &[Slot<T>]) {
         self.calculate_cargo_balance(slots);
     }
 
-    pub(crate) fn conduct(
-        &mut self,
-        carriers: &mut Vec<Carrier<char>>,
-        slots: &mut Vec<Slot<char>>,
-    ) {
+    pub(crate) fn conduct(&mut self, carriers: &mut Vec<Carrier<T>>, slots: &mut Vec<Slot<T>>) {
         let mut _debug_carrier_indexer = 0;
         carriers.iter_mut().for_each(|x| {
             match x.state {
@@ -140,7 +137,7 @@ impl Dispatcher {
     }
 
     // TODO: type of cargo must be injected by the external caller and not hardcoded to 'char'
-    fn get_cargo_to_spawn(&mut self) -> Option<char> {
+    fn get_cargo_to_spawn(&mut self) -> Option<T> {
         if self.cargo_balance.is_empty() {
             return None;
         }
@@ -149,17 +146,17 @@ impl Dispatcher {
         Some(missing)
     }
 
-    fn reduce_cargo_balance(&mut self, cargo: char) {
+    fn reduce_cargo_balance(&mut self, cargo: T) {
         *self.cargo_balance.entry(cargo).or_insert(0) -= 1;
         self.cargo_balance.retain(|_, v| *v != 0);
     }
 
-    fn increase_cargo_balance(&mut self, cargo: char) {
+    fn increase_cargo_balance(&mut self, cargo: T) {
         *self.cargo_balance.entry(cargo).or_insert(0) += 1;
         self.cargo_balance.retain(|_, v| *v != 0);
     }
 
-    fn find_pit(&self, slots: &[Slot<char>]) -> Option<usize> {
+    fn find_pit(&self, slots: &[Slot<T>]) -> Option<usize> {
         for (i, v) in slots.iter().enumerate() {
             if v.is_pit() {
                 return Some(i);
@@ -169,7 +166,7 @@ impl Dispatcher {
     }
 
     // TODO: Merge with find_pit
-    fn find_spawner(&self, slots: &[Slot<char>]) -> Option<usize> {
+    fn find_spawner(&self, slots: &[Slot<T>]) -> Option<usize> {
         for (i, v) in slots.iter().enumerate() {
             if v.is_spawner() {
                 return Some(i);
@@ -178,10 +175,7 @@ impl Dispatcher {
         None
     }
 
-    fn find_slot_with_payload_that_should_go_to_the_pit(
-        &self,
-        slots: &[Slot<char>],
-    ) -> Option<usize> {
+    fn find_slot_with_payload_that_should_go_to_the_pit(&self, slots: &[Slot<T>]) -> Option<usize> {
         let excessive = self.cargo_balance.iter().find(|&(_, &v)| v > 0);
         if let Some(cargo) = excessive {
             if let Some(slot_index) = self.find_slot_that_contains(slots, *cargo.0) {
@@ -194,7 +188,7 @@ impl Dispatcher {
     }
 
     // TODO: type of cargo must be injected by the external caller and not hardcoded to 'char'
-    fn find_slot_that_contains(&self, slots: &[Slot<char>], cargo: char) -> Option<usize> {
+    fn find_slot_that_contains(&self, slots: &[Slot<T>], cargo: T) -> Option<usize> {
         for (i, v) in slots.iter().enumerate() {
             let [current, _] = v.get_payloads();
             if let Some(contained_cargo) = current {
@@ -208,8 +202,8 @@ impl Dispatcher {
 
     fn is_there_a_free_slot_for(
         &self,
-        payload: Payload<char>,
-        slots: &[Slot<char>],
+        payload: Payload<T>,
+        slots: &[Slot<T>],
         ii: &mut usize,
     ) -> bool {
         for (i, v) in slots.iter().enumerate() {
@@ -225,7 +219,7 @@ impl Dispatcher {
 
     fn find_slot_with_mismatched_payload_and_free_target(
         &self,
-        slots: &[Slot<char>],
+        slots: &[Slot<T>],
     ) -> (Option<usize>, usize) {
         let mut ii: usize = 0; // TODO: Make this an Option
         let found = slots.iter().position(|x| {
@@ -239,7 +233,7 @@ impl Dispatcher {
         (found, ii)
     }
 
-    fn find_slot_with_mismatched_payload(&self, slots: &[Slot<char>]) -> Option<usize> {
+    fn find_slot_with_mismatched_payload(&self, slots: &[Slot<T>]) -> Option<usize> {
         slots.iter().position(|x| {
             let [current, target] = x.get_payloads();
             current != None && current != target && !x.taken_care_of
@@ -248,8 +242,8 @@ impl Dispatcher {
 
     fn find_slot_for_target(
         &self,
-        slots: &[Slot<char>],
-        target_payload: Option<Payload<char>>,
+        slots: &[Slot<T>],
+        target_payload: Option<Payload<T>>,
     ) -> Option<usize> {
         let t = target_payload.expect("Trying to find slot for empty target");
 
@@ -266,11 +260,7 @@ impl Dispatcher {
         }
     }
 
-    fn find_temporary_slot(
-        &self,
-        slots: &[Slot<char>],
-        target: Option<Payload<char>>,
-    ) -> Option<usize> {
+    fn find_temporary_slot(&self, slots: &[Slot<T>], target: Option<Payload<T>>) -> Option<usize> {
         let t = target.expect("Trying to find slot for empty target");
 
         if let Some((index, _)) = slots.iter().enumerate().find(|(index, _)| {
