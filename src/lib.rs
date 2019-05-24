@@ -17,7 +17,7 @@ pub use slot::*;
 #[macro_use]
 extern crate approx;
 
-fn _debug_dump_slots(slots: &[Slot]) {
+fn _debug_dump_slots(slots: &[Slot<char>]) {
     for (i, v) in slots.iter().enumerate() {
         print!("Slot [{}]: ", i);
 
@@ -40,7 +40,7 @@ fn _debug_dump_slots(slots: &[Slot]) {
 
 pub struct Swarm {
     carriers: Vec<Carrier>,
-    slots: Vec<Slot>,
+    slots: Vec<Slot<char>>,
     first_tick: bool,
     dispatcher: Dispatcher,
 }
@@ -73,11 +73,11 @@ impl Swarm {
         &self.carriers
     }
 
-    pub fn get_slots(&self) -> &Vec<Slot> {
+    pub fn get_slots(&self) -> &Vec<Slot<char>> {
         &self.slots
     }
 
-    pub fn add_slot(&mut self, slot: Slot) {
+    pub fn add_slot(&mut self, slot: Slot<char>) {
         Swarm::add_object(&mut self.slots, slot);
     }
 

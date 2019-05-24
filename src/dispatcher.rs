@@ -10,7 +10,7 @@ pub struct Dispatcher {
 }
 
 impl Dispatcher {
-    fn calculate_cargo_balance(&mut self, slots: &[Slot]) {
+    fn calculate_cargo_balance(&mut self, slots: &[Slot<char>]) {
         self.cargo_balance.clear();
 
         slots.iter().for_each(|x| {
@@ -24,11 +24,11 @@ impl Dispatcher {
         self.cargo_balance.retain(|_, v| *v != 0);
     }
 
-    pub(crate) fn precalc(&mut self, slots: &[Slot]) {
+    pub(crate) fn precalc(&mut self, slots: &[Slot<char>]) {
         self.calculate_cargo_balance(slots);
     }
 
-    pub(crate) fn conduct(&mut self, carriers: &mut Vec<Carrier>, slots: &mut Vec<Slot>) {
+    pub(crate) fn conduct(&mut self, carriers: &mut Vec<Carrier>, slots: &mut Vec<Slot<char>>) {
         let mut _debug_carrier_indexer = 0;
         carriers.iter_mut().for_each(|x| {
             match x.state {
@@ -155,7 +155,7 @@ impl Dispatcher {
         self.cargo_balance.retain(|_, v| *v != 0);
     }
 
-    fn find_pit(&self, slots: &[Slot]) -> Option<usize> {
+    fn find_pit(&self, slots: &[Slot<char>]) -> Option<usize> {
         for (i, v) in slots.iter().enumerate() {
             if v.is_pit() {
                 return Some(i);
@@ -165,7 +165,7 @@ impl Dispatcher {
     }
 
     // TODO: Merge with find_pit
-    fn find_spawner(&self, slots: &[Slot]) -> Option<usize> {
+    fn find_spawner(&self, slots: &[Slot<char>]) -> Option<usize> {
         for (i, v) in slots.iter().enumerate() {
             if v.is_spawner() {
                 return Some(i);
@@ -174,7 +174,10 @@ impl Dispatcher {
         None
     }
 
-    fn find_slot_with_payload_that_should_go_to_the_pit(&self, slots: &[Slot]) -> Option<usize> {
+    fn find_slot_with_payload_that_should_go_to_the_pit(
+        &self,
+        slots: &[Slot<char>],
+    ) -> Option<usize> {
         let excessive = self.cargo_balance.iter().find(|&(_, &v)| v > 0);
         if let Some(cargo) = excessive {
             if let Some(slot_index) = self.find_slot_that_contains(slots, *cargo.0) {
@@ -187,7 +190,7 @@ impl Dispatcher {
     }
 
     // TODO: type of cargo must be injected by the external caller and not hardcoded to 'char'
-    fn find_slot_that_contains(&self, slots: &[Slot], cargo: char) -> Option<usize> {
+    fn find_slot_that_contains(&self, slots: &[Slot<char>], cargo: char) -> Option<usize> {
         for (i, v) in slots.iter().enumerate() {
             let [current, _] = v.get_payloads();
             if let Some(contained_cargo) = current {
@@ -202,7 +205,7 @@ impl Dispatcher {
     fn is_there_a_free_slot_for(
         &self,
         payload: Payload<char>,
-        slots: &[Slot],
+        slots: &[Slot<char>],
         ii: &mut usize,
     ) -> bool {
         for (i, v) in slots.iter().enumerate() {
@@ -218,7 +221,7 @@ impl Dispatcher {
 
     fn find_slot_with_mismatched_payload_and_free_target(
         &self,
-        slots: &[Slot],
+        slots: &[Slot<char>],
     ) -> (Option<usize>, usize) {
         let mut ii: usize = 0; // TODO: Make this an Option
         let found = slots.iter().position(|x| {
@@ -232,7 +235,7 @@ impl Dispatcher {
         (found, ii)
     }
 
-    fn find_slot_with_mismatched_payload(&self, slots: &[Slot]) -> Option<usize> {
+    fn find_slot_with_mismatched_payload(&self, slots: &[Slot<char>]) -> Option<usize> {
         slots.iter().position(|x| {
             let [current, target] = x.get_payloads();
             current != None && current != target && !x.taken_care_of
@@ -241,7 +244,7 @@ impl Dispatcher {
 
     fn find_slot_for_target(
         &self,
-        slots: &[Slot],
+        slots: &[Slot<char>],
         target_payload: Option<Payload<char>>,
     ) -> Option<usize> {
         let t = target_payload.expect("Trying to find slot for empty target");
@@ -259,7 +262,11 @@ impl Dispatcher {
         }
     }
 
-    fn find_temporary_slot(&self, slots: &[Slot], target: Option<Payload<char>>) -> Option<usize> {
+    fn find_temporary_slot(
+        &self,
+        slots: &[Slot<char>],
+        target: Option<Payload<char>>,
+    ) -> Option<usize> {
         let t = target.expect("Trying to find slot for empty target");
 
         if let Some((index, _)) = slots.iter().enumerate().find(|(index, _)| {

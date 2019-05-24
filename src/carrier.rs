@@ -72,7 +72,7 @@ impl Carrier {
     pub(crate) fn target_slot(
         &mut self,
         target: usize,
-        slot: &mut Slot,
+        slot: &mut Slot<char>,
         is_temporary: bool,
         to_pit: bool,
         to_spawner: (bool, Option<char>),
@@ -185,7 +185,7 @@ impl Carrier {
         self.state
     }
 
-    pub fn tick(&mut self, slots: &mut Vec<Slot>) {
+    pub fn tick(&mut self, slots: &mut Vec<Slot<char>>) {
         match self.state {
             State::TARGETING(target) => {
                 let target_pos = slots[target].get_position();

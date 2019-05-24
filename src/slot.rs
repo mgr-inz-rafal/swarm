@@ -9,22 +9,23 @@ pub enum SlotKind {
 }
 
 #[derive(Copy, Clone, Debug)]
-pub struct Slot {
+pub struct Slot<T: PartialEq + Copy> {
+    // TODO: Do not require Copy - get_payloads() should return reference
     pos: Position,
-    pub(crate) current_payload: Option<Payload<char>>,
-    target_payload: Option<Payload<char>>,
+    pub(crate) current_payload: Option<Payload<T>>,
+    target_payload: Option<Payload<T>>,
     pub(crate) taken_care_of: bool,
     kind: SlotKind,
 }
 
-impl Slot {
+impl<T: PartialEq + Copy> Slot<T> {
     pub fn new(
         x: f64,
         y: f64,
-        current_payload: Option<Payload<char>>,
-        target_payload: Option<Payload<char>>,
+        current_payload: Option<Payload<T>>,
+        target_payload: Option<Payload<T>>,
         kind: SlotKind,
-    ) -> Slot {
+    ) -> Slot<T> {
         Slot {
             pos: Position::new(x, y),
             current_payload,
@@ -37,7 +38,7 @@ impl Slot {
         &self.pos
     }
 
-    pub fn get_payloads(&self) -> [Option<Payload<char>>; 2] {
+    pub fn get_payloads(&self) -> [Option<Payload<T>>; 2] {
         [self.current_payload, self.target_payload]
     }
 
@@ -45,7 +46,7 @@ impl Slot {
         self.taken_care_of
     }
 
-    pub(crate) fn accepts(&self, p: Option<Payload<char>>) -> bool {
+    pub(crate) fn accepts(&self, p: Option<Payload<T>>) -> bool {
         self.target_payload == p
     }
 
