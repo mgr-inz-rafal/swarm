@@ -6,6 +6,7 @@ use super::payload::*;
 use super::position::*;
 use super::slot::*;
 use rand::Rng;
+use std::hash::Hash;
 
 const ANGLE_INCREMENT: f64 = 0.05;
 const SPEED_FACTOR: f64 = 2.0;
@@ -31,7 +32,7 @@ pub(crate) enum RotationDirection {
 }
 
 #[derive(Copy, Clone)]
-pub struct Carrier<T: PartialEq + Copy> {
+pub struct Carrier<T: PartialEq + Eq + Hash + Copy> {
     pos: Position,
     angle: f64,
     pub(crate) state: State,
@@ -44,7 +45,7 @@ pub struct Carrier<T: PartialEq + Copy> {
     pub(crate) going_to_spawner: (bool, Option<T>),
 }
 
-impl<T: PartialEq + Copy> Carrier<T> {
+impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     pub fn new(x: f64, y: f64) -> Carrier<T> {
         Carrier {
             pos: Position::new(x, y),

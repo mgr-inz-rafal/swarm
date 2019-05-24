@@ -1,6 +1,8 @@
 use super::payload::*;
 use super::position::*;
 
+use std::hash::Hash;
+
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum SlotKind {
     CLASSIC,
@@ -9,7 +11,7 @@ pub enum SlotKind {
 }
 
 #[derive(Copy, Clone, Debug)]
-pub struct Slot<T: PartialEq + Copy> {
+pub struct Slot<T: PartialEq + Eq + Hash + Copy> {
     // TODO: Do not require Copy - get_payloads() should return reference
     pos: Position,
     pub(crate) current_payload: Option<Payload<T>>,
@@ -18,7 +20,7 @@ pub struct Slot<T: PartialEq + Copy> {
     kind: SlotKind,
 }
 
-impl<T: PartialEq + Copy> Slot<T> {
+impl<T: PartialEq + Eq + Hash + Copy> Slot<T> {
     pub fn new(
         x: f64,
         y: f64,
