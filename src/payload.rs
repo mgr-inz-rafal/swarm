@@ -1,4 +1,3 @@
-// TODO: type of cargo must be injected by the external caller and not hardcoded to 'char'
 #[derive(Copy, Clone, Debug)]
 pub struct Payload<T: PartialEq> {
     pub cargo: T,

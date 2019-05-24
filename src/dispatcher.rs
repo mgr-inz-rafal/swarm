@@ -5,7 +5,6 @@ use super::carrier::*;
 use super::payload::*;
 use super::slot::*;
 
-// TODO: type of cargo must be injected by the external caller and not hardcoded to 'char'
 pub struct Dispatcher<T: PartialEq + Eq + Hash + Copy> {
     pub(crate) cargo_balance: HashMap<T, i32>,
 }
@@ -136,7 +135,6 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
         });
     }
 
-    // TODO: type of cargo must be injected by the external caller and not hardcoded to 'char'
     fn get_cargo_to_spawn(&mut self) -> Option<T> {
         if self.cargo_balance.is_empty() {
             return None;
@@ -187,7 +185,6 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
         None
     }
 
-    // TODO: type of cargo must be injected by the external caller and not hardcoded to 'char'
     fn find_slot_that_contains(&self, slots: &[Slot<T>], cargo: T) -> Option<usize> {
         for (i, v) in slots.iter().enumerate() {
             let [current, _] = v.get_payloads();
