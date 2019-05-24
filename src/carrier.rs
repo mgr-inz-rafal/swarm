@@ -35,7 +35,7 @@ pub struct Carrier {
     pos: Position,
     angle: f64,
     pub(crate) state: State,
-    pub(crate) payload: Option<Payload>,
+    pub(crate) payload: Option<Payload<char>>,
     pub(crate) reserved_target: Option<usize>,
     rotation_direction: Option<RotationDirection>,
     idle_rotation_direction: Option<RotationDirection>,
@@ -89,7 +89,7 @@ impl Carrier {
         self.going_to_spawner = to_spawner;
     }
 
-    pub fn get_payload(&self) -> Option<Payload> {
+    pub fn get_payload(&self) -> Option<Payload<char>> {
         self.payload
     }
 
@@ -214,7 +214,10 @@ impl Carrier {
                 }
 
                 self.payload = if self.going_to_spawner.0 {
-                    Some(Payload::from_char(self.going_to_spawner.1.unwrap()))
+                    Some(Payload {
+                        cargo: self.going_to_spawner.1.unwrap(),
+                        taken_from: None,
+                    })
                 } else {
                     slots[target].current_payload
                 };

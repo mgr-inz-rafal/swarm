@@ -11,8 +11,8 @@ pub enum SlotKind {
 #[derive(Copy, Clone, Debug)]
 pub struct Slot {
     pos: Position,
-    pub(crate) current_payload: Option<Payload>,
-    target_payload: Option<Payload>,
+    pub(crate) current_payload: Option<Payload<char>>,
+    target_payload: Option<Payload<char>>,
     pub(crate) taken_care_of: bool,
     kind: SlotKind,
 }
@@ -21,8 +21,8 @@ impl Slot {
     pub fn new(
         x: f64,
         y: f64,
-        current_payload: Option<Payload>,
-        target_payload: Option<Payload>,
+        current_payload: Option<Payload<char>>,
+        target_payload: Option<Payload<char>>,
         kind: SlotKind,
     ) -> Slot {
         Slot {
@@ -37,7 +37,7 @@ impl Slot {
         &self.pos
     }
 
-    pub fn get_payloads(&self) -> [Option<Payload>; 2] {
+    pub fn get_payloads(&self) -> [Option<Payload<char>>; 2] {
         [self.current_payload, self.target_payload]
     }
 
@@ -45,7 +45,7 @@ impl Slot {
         self.taken_care_of
     }
 
-    pub(crate) fn accepts(&self, p: Option<Payload>) -> bool {
+    pub(crate) fn accepts(&self, p: Option<Payload<char>>) -> bool {
         self.target_payload == p
     }
 

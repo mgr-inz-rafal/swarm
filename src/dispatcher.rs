@@ -199,7 +199,12 @@ impl Dispatcher {
         None
     }
 
-    fn is_there_a_free_slot_for(&self, payload: Payload, slots: &[Slot], ii: &mut usize) -> bool {
+    fn is_there_a_free_slot_for(
+        &self,
+        payload: Payload<char>,
+        slots: &[Slot],
+        ii: &mut usize,
+    ) -> bool {
         for (i, v) in slots.iter().enumerate() {
             let [current, target] = v.get_payloads();
             if current == None && target != None && !v.taken_care_of && target.unwrap() == payload {
@@ -237,7 +242,7 @@ impl Dispatcher {
     fn find_slot_for_target(
         &self,
         slots: &[Slot],
-        target_payload: Option<Payload>,
+        target_payload: Option<Payload<char>>,
     ) -> Option<usize> {
         let t = target_payload.expect("Trying to find slot for empty target");
 
@@ -254,7 +259,7 @@ impl Dispatcher {
         }
     }
 
-    fn find_temporary_slot(&self, slots: &[Slot], target: Option<Payload>) -> Option<usize> {
+    fn find_temporary_slot(&self, slots: &[Slot], target: Option<Payload<char>>) -> Option<usize> {
         let t = target.expect("Trying to find slot for empty target");
 
         if let Some((index, _)) = slots.iter().enumerate().find(|(index, _)| {
