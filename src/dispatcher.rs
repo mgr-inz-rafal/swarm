@@ -28,7 +28,11 @@ impl Dispatcher {
         self.calculate_cargo_balance(slots);
     }
 
-    pub(crate) fn conduct(&mut self, carriers: &mut Vec<Carrier>, slots: &mut Vec<Slot<char>>) {
+    pub(crate) fn conduct(
+        &mut self,
+        carriers: &mut Vec<Carrier<char>>,
+        slots: &mut Vec<Slot<char>>,
+    ) {
         let mut _debug_carrier_indexer = 0;
         carriers.iter_mut().for_each(|x| {
             match x.state {

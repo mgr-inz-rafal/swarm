@@ -31,21 +31,21 @@ pub(crate) enum RotationDirection {
 }
 
 #[derive(Copy, Clone)]
-pub struct Carrier {
+pub struct Carrier<T: PartialEq + Copy> {
     pos: Position,
     angle: f64,
     pub(crate) state: State,
-    pub(crate) payload: Option<Payload<char>>,
+    pub(crate) payload: Option<Payload<T>>,
     pub(crate) reserved_target: Option<usize>,
     rotation_direction: Option<RotationDirection>,
     idle_rotation_direction: Option<RotationDirection>,
     pub(crate) temporary_target: bool,
     pub(crate) carrying_to_pit: bool,
-    pub(crate) going_to_spawner: (bool, Option<char>),
+    pub(crate) going_to_spawner: (bool, Option<T>),
 }
 
-impl Carrier {
-    pub fn new(x: f64, y: f64) -> Carrier {
+impl<T: PartialEq + Copy> Carrier<T> {
+    pub fn new(x: f64, y: f64) -> Carrier<T> {
         Carrier {
             pos: Position::new(x, y),
             angle: 0.0,
@@ -53,7 +53,7 @@ impl Carrier {
             payload: None,
             reserved_target: None,
             rotation_direction: None,
-            idle_rotation_direction: Carrier::pick_random_idle_rotation(),
+            idle_rotation_direction: Carrier::<T>::pick_random_idle_rotation(),
             temporary_target: false,
             carrying_to_pit: false,
             going_to_spawner: (false, None),
@@ -72,10 +72,10 @@ impl Carrier {
     pub(crate) fn target_slot(
         &mut self,
         target: usize,
-        slot: &mut Slot<char>,
+        slot: &mut Slot<T>,
         is_temporary: bool,
         to_pit: bool,
-        to_spawner: (bool, Option<char>),
+        to_spawner: (bool, Option<T>),
     ) {
         if slot.is_pit() && self.get_payload().is_none() {
             panic!("Going empty to the pit, will try to pickup");
@@ -89,7 +89,7 @@ impl Carrier {
         self.going_to_spawner = to_spawner;
     }
 
-    pub fn get_payload(&self) -> Option<Payload<char>> {
+    pub fn get_payload(&self) -> Option<Payload<T>> {
         self.payload
     }
 
@@ -185,7 +185,7 @@ impl Carrier {
         self.state
     }
 
-    pub fn tick(&mut self, slots: &mut Vec<Slot<char>>) {
+    pub fn tick(&mut self, slots: &mut Vec<Slot<T>>) {
         match self.state {
             State::TARGETING(target) => {
                 let target_pos = slots[target].get_position();
@@ -249,7 +249,7 @@ impl Carrier {
                 self.reserved_target = None;
                 self.payload = None;
                 self.state = State::IDLE;
-                self.idle_rotation_direction = Carrier::pick_random_idle_rotation();
+                self.idle_rotation_direction = Carrier::<T>::pick_random_idle_rotation();
             }
             State::IDLE | State::NOTARGET => {
                 self.move_forward();

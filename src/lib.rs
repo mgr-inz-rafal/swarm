@@ -39,7 +39,7 @@ fn _debug_dump_slots(slots: &[Slot<char>]) {
 }
 
 pub struct Swarm {
-    carriers: Vec<Carrier>,
+    carriers: Vec<Carrier<char>>,
     slots: Vec<Slot<char>>,
     first_tick: bool,
     dispatcher: Dispatcher,
@@ -65,11 +65,11 @@ impl Swarm {
         vec.push(obj);
     }
 
-    pub fn add_carrier(&mut self, carrier: Carrier) {
+    pub fn add_carrier(&mut self, carrier: Carrier<char>) {
         Swarm::add_object(&mut self.carriers, carrier);
     }
 
-    pub fn get_carriers(&self) -> &Vec<Carrier> {
+    pub fn get_carriers(&self) -> &Vec<Carrier<char>> {
         &self.carriers
     }
 
