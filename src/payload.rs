@@ -6,7 +6,7 @@ pub struct Payload<T: PartialEq> {
 
 impl<T: PartialEq> Payload<T>
 {
-    pub(crate) fn new(cargo: T) -> Payload<T>
+    pub fn new(cargo: T) -> Payload<T>
     {
         Payload{
             cargo,
