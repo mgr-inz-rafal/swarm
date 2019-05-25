@@ -160,6 +160,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     }
 
     fn is_close_enough(&self, target: (f64, f64)) -> bool {
+        // TODO: Use relative_eq!
         ((self.pos.x - target.0).powf(2.0) + (self.pos.y - target.1).powf(2.0)).sqrt()
             < POSITION_EQUALITY_EPSILON
     }
