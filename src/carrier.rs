@@ -266,7 +266,7 @@ mod tests {
     use crate::carrier::*;
     #[test]
     fn rotate_direction_calculation1() {
-        let mut carrier = make_carrier!(0.0, 0.0);
+        let mut carrier = Carrier::<usize>::new(0.0, 0.0);
         carrier.angle = 0.0;
         carrier.rotate_to(std::f64::consts::PI / 2.0);
 
@@ -278,7 +278,7 @@ mod tests {
 
     #[test]
     fn rotate_direction_calculation2() {
-        let mut carrier = make_carrier!(0.0, 0.0);
+        let mut carrier = Carrier::<usize>::new(0.0, 0.0);
         carrier.angle = 0.0;
         carrier.rotate_to(std::f64::consts::PI / 2.0 * 3.0);
 
@@ -290,11 +290,11 @@ mod tests {
 
     #[test]
     fn rotate_direction_calculation3() {
-        let mut carrier = make_carrier!(0.0, 0.0);
+        let mut carrier = Carrier::<usize>::new(0.0, 0.0);
         carrier.angle = 0.0;
         carrier.rotate_to(std::f64::consts::PI);
 
-        // When rotation 180deg, choose either left or right direction
+        // When rotating 180deg, choose either left or right direction
         assert!(carrier.rotation_direction.is_some())
     }
 

@@ -710,5 +710,4 @@ mod tests {
         assert_eq!(dispatcher.find_slot_that_contains(&slots, 'X'), Some(0));
         assert_eq!(dispatcher.find_slot_that_contains(&slots, 'Y'), None);
     }
-
 }
