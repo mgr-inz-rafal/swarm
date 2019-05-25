@@ -1,21 +1,22 @@
-// TODO: type of cargo must be injected by the external caller and not hardcoded to 'char'
 #[derive(Copy, Clone, Debug)]
-pub struct Payload {
-    pub cargo: char,
-    pub(crate) taken_from: Option<usize>,
+pub struct Payload<T: PartialEq> {
+    pub cargo: T,
+    pub taken_from: Option<usize>, // TODO: Make pub(crate) and allow consructing from T
 }
 
-impl PartialEq for Payload {
-    fn eq(&self, other: &Payload) -> bool {
-        self.cargo == other.cargo
+impl<T: PartialEq> Payload<T>
+{
+    pub fn new(cargo: T) -> Payload<T>
+    {
+        Payload{
+            cargo,
+            taken_from: None
+        }
     }
 }
 
-impl Payload {
-    pub fn from_char(c: char) -> Payload {
-        Payload {
-            cargo: c,
-            taken_from: None,
-        }
+impl<T: PartialEq> PartialEq for Payload<T> {
+    fn eq(&self, other: &Payload<T>) -> bool {
+        self.cargo == other.cargo
     }
 }

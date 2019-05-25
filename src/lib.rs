@@ -8,6 +8,7 @@ mod position;
 mod slot;
 
 use std::collections::HashMap;
+use std::hash::Hash;
 
 pub use carrier::*;
 pub use dispatcher::*;
@@ -17,7 +18,7 @@ pub use slot::*;
 #[macro_use]
 extern crate approx;
 
-fn _debug_dump_slots(slots: &[Slot]) {
+fn _debug_dump_slots(slots: &[Slot<char>]) {
     for (i, v) in slots.iter().enumerate() {
         print!("Slot [{}]: ", i);
 
@@ -38,19 +39,16 @@ fn _debug_dump_slots(slots: &[Slot]) {
     }
 }
 
-pub struct Swarm {
-    carriers: Vec<Carrier>,
-    slots: Vec<Slot>,
+#[derive(Default)]
+pub struct Swarm<T: PartialEq + Eq + Hash + Copy> {
+    carriers: Vec<Carrier<T>>,
+    slots: Vec<Slot<T>>,
     first_tick: bool,
-    dispatcher: Dispatcher,
+    dispatcher: Dispatcher<T>,
 }
 
-pub fn new() -> Swarm {
-    Swarm::new()
-}
-
-impl Swarm {
-    fn new() -> Swarm {
+impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
+    pub fn new() -> Swarm<T> {
         Swarm {
             carriers: Vec::new(),
             slots: Vec::new(),
@@ -61,24 +59,24 @@ impl Swarm {
         }
     }
 
-    fn add_object<T>(vec: &mut Vec<T>, obj: T) {
+    fn add_object<U>(vec: &mut Vec<U>, obj: U) {
         vec.push(obj);
     }
 
-    pub fn add_carrier(&mut self, carrier: Carrier) {
-        Swarm::add_object(&mut self.carriers, carrier);
+    pub fn add_carrier(&mut self, carrier: Carrier<T>) {
+        Swarm::<T>::add_object(&mut self.carriers, carrier);
     }
 
-    pub fn get_carriers(&self) -> &Vec<Carrier> {
+    pub fn add_slot(&mut self, slot: Slot<T>) {
+        Swarm::<T>::add_object(&mut self.slots, slot);
+    }
+
+    pub fn get_carriers(&self) -> &Vec<Carrier<T>> {
         &self.carriers
     }
 
-    pub fn get_slots(&self) -> &Vec<Slot> {
+    pub fn get_slots(&self) -> &Vec<Slot<T>> {
         &self.slots
-    }
-
-    pub fn add_slot(&mut self, slot: Slot) {
-        Swarm::add_object(&mut self.slots, slot);
     }
 
     pub fn tick(&mut self) {

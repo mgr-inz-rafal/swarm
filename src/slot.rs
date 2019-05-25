@@ -1,6 +1,8 @@
 use super::payload::*;
 use super::position::*;
 
+use std::hash::Hash;
+
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum SlotKind {
     CLASSIC,
@@ -9,22 +11,23 @@ pub enum SlotKind {
 }
 
 #[derive(Copy, Clone, Debug)]
-pub struct Slot {
+pub struct Slot<T: PartialEq + Eq + Hash + Copy> {
+    // TODO: Do not require Copy - get_payloads() should return reference
     pos: Position,
-    pub(crate) current_payload: Option<Payload>,
-    target_payload: Option<Payload>,
+    pub(crate) current_payload: Option<Payload<T>>,
+    target_payload: Option<Payload<T>>,
     pub(crate) taken_care_of: bool,
     kind: SlotKind,
 }
 
-impl Slot {
+impl<T: PartialEq + Eq + Hash + Copy> Slot<T> {
     pub fn new(
         x: f64,
         y: f64,
-        current_payload: Option<Payload>,
-        target_payload: Option<Payload>,
+        current_payload: Option<Payload<T>>,
+        target_payload: Option<Payload<T>>,
         kind: SlotKind,
-    ) -> Slot {
+    ) -> Slot<T> {
         Slot {
             pos: Position::new(x, y),
             current_payload,
@@ -37,7 +40,7 @@ impl Slot {
         &self.pos
     }
 
-    pub fn get_payloads(&self) -> [Option<Payload>; 2] {
+    pub fn get_payloads(&self) -> [Option<Payload<T>>; 2] {
         [self.current_payload, self.target_payload]
     }
 
@@ -45,7 +48,7 @@ impl Slot {
         self.taken_care_of
     }
 
-    pub(crate) fn accepts(&self, p: Option<Payload>) -> bool {
+    pub(crate) fn accepts(&self, p: Option<Payload<T>>) -> bool {
         self.target_payload == p
     }
 
