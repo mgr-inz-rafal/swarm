@@ -311,8 +311,8 @@ mod tests {
             cargo_balance: HashMap::new(),
         };
         let slots = vec![
-            make_slot!(100.0, 100.0, None, Some(Payload::new('X'))),
-            make_slot!(100.0, 100.0, None, Some(Payload::new('Y'))),
+            Slot::new(100.0, 100.0, None, Some(Payload::new('X')), SlotKind::CLASSIC),
+            Slot::new(100.0, 100.0, None, Some(Payload::new('Y')), SlotKind::CLASSIC),
         ];
 
         // Slot without current payload cannot have mismatched payload
@@ -325,17 +325,17 @@ mod tests {
             cargo_balance: HashMap::new(),
         };
         let slots = vec![
-            make_slot!(
+            Slot::new(
                 100.0,
                 100.0,
                 Some(Payload::new('X')),
-                Some(Payload::new('X'))
+                Some(Payload::new('X')), SlotKind::CLASSIC
             ),
-            make_slot!(
+            Slot::new(
                 100.0,
                 100.0,
                 Some(Payload::new('A')),
-                Some(Payload::new('Y'))
+                Some(Payload::new('Y')), SlotKind::CLASSIC
             ),
         ];
 
@@ -351,17 +351,17 @@ mod tests {
             cargo_balance: HashMap::new(),
         };
         let slots = vec![
-            make_slot!(
+            Slot::new(
                 100.0,
                 100.0,
                 Some(Payload::new('Y')),
-                Some(Payload::new('Y'))
+                Some(Payload::new('Y')), SlotKind::CLASSIC
             ),
-            make_slot!(
+            Slot::new(
                 100.0,
                 100.0,
                 Some(Payload::new('A')),
-                Some(Payload::new('A'))
+                Some(Payload::new('A')), SlotKind::CLASSIC
             ),
         ];
 
@@ -374,17 +374,17 @@ mod tests {
             cargo_balance: HashMap::new(),
         };
         let slots = vec![
-            make_slot!(
+            Slot::new(
                 100.0,
                 100.0,
                 Some(Payload::new('A')),
-                Some(Payload::new('B'))
+                Some(Payload::new('B')), SlotKind::CLASSIC
             ),
-            make_slot!(
+            Slot::new(
                 100.0,
                 100.0,
                 Some(Payload::new('X')),
-                Some(Payload::new('B'))
+                Some(Payload::new('B')), SlotKind::CLASSIC
             ),
         ];
 
@@ -400,13 +400,13 @@ mod tests {
             cargo_balance: HashMap::new(),
         };
         let slots = vec![
-            make_slot!(
+            Slot::new(
                 100.0,
                 100.0,
                 Some(Payload::new('A')),
-                Some(Payload::new('B'))
+                Some(Payload::new('B')), SlotKind::CLASSIC
             ),
-            make_slot!(100.0, 100.0, None, Some(Payload::new('B'))),
+            Slot::new(100.0, 100.0, None, Some(Payload::new('B')), SlotKind::CLASSIC),
         ];
 
         assert_eq!(
@@ -421,13 +421,13 @@ mod tests {
             cargo_balance: HashMap::new(),
         };
         let slots = vec![
-            make_slot!(
+            Slot::new(
                 100.0,
                 100.0,
                 Some(Payload::new('A')),
-                Some(Payload::new('B'))
+                Some(Payload::new('B')), SlotKind::CLASSIC
             ),
-            make_slot!(100.0, 100.0, None, Some(Payload::new('A'))),
+            Slot::new(100.0, 100.0, None, Some(Payload::new('A')), SlotKind::CLASSIC),
         ];
 
         assert_eq!(
@@ -442,13 +442,13 @@ mod tests {
             cargo_balance: HashMap::new(),
         };
         let slots = vec![
-            make_slot!(
+            Slot::new(
                 100.0,
                 100.0,
                 Some(Payload::new('A')),
-                Some(Payload::new('B'))
+                Some(Payload::new('B')), SlotKind::CLASSIC
             ),
-            make_slot!(100.0, 100.0, None, Some(Payload::new('C'))),
+            Slot::new(100.0, 100.0, None, Some(Payload::new('C')), SlotKind::CLASSIC),
         ];
 
         let p = Payload::new('C');
@@ -467,13 +467,13 @@ mod tests {
             cargo_balance: HashMap::new(),
         };
         let slots = vec![
-            make_slot!(
+            Slot::new(
                 100.0,
                 100.0,
                 Some(Payload::new('A')),
-                Some(Payload::new('C'))
+                Some(Payload::new('C')), SlotKind::CLASSIC
             ),
-            make_slot!(100.0, 100.0, None, Some(Payload::new('D'))),
+            Slot::new(100.0, 100.0, None, Some(Payload::new('D')), SlotKind::CLASSIC),
         ];
 
         let p = Payload::new('C');
@@ -491,32 +491,32 @@ mod tests {
             cargo_balance: HashMap::new(),
         };
         let slots = vec![
-            make_slot!(
+            Slot::new(
                 100.0,
                 100.0,
                 Some(Payload::new('A')),
-                Some(Payload::new('C'))
+                Some(Payload::new('C')), SlotKind::CLASSIC
             ),
-            make_slot!(
+            Slot::new(
                 100.0,
                 100.0,
                 Some(Payload::new('C')),
-                Some(Payload::new('A'))
+                Some(Payload::new('A')), SlotKind::CLASSIC
             ),
-            make_slot!(
+            Slot::new(
                 100.0,
                 100.0,
                 Some(Payload::new('E')),
-                Some(Payload::new('E'))
+                Some(Payload::new('E')), SlotKind::CLASSIC
             ),
-            make_slot!(
+            Slot::new(
                 100.0,
                 100.0,
                 Some(Payload::new('E')),
-                Some(Payload::new('F'))
+                Some(Payload::new('F')), SlotKind::CLASSIC
             ),
-            make_slot!(100.0, 100.0, None, Some(Payload::new('G'))),
-            make_slot!(100.0, 100.0, None, Some(Payload::new('G'))),
+            Slot::new(100.0, 100.0, None, Some(Payload::new('G')), SlotKind::CLASSIC),
+            Slot::new(100.0, 100.0, None, Some(Payload::new('G')), SlotKind::CLASSIC),
         ];
 
         dispatcher.calculate_cargo_balance(&slots);
@@ -534,32 +534,32 @@ mod tests {
             cargo_balance: HashMap::new(),
         };
         let slots = vec![
-            make_slot!(
+            Slot::new(
                 100.0,
                 100.0,
                 Some(Payload::new('A')),
-                Some(Payload::new('C'))
+                Some(Payload::new('C')), SlotKind::CLASSIC
             ),
-            make_slot!(
+            Slot::new(
                 100.0,
                 100.0,
                 Some(Payload::new('C')),
-                Some(Payload::new('A'))
+                Some(Payload::new('A')), SlotKind::CLASSIC
             ),
-            make_slot!(
+            Slot::new(
                 100.0,
                 100.0,
                 Some(Payload::new('E')),
-                Some(Payload::new('E'))
+                Some(Payload::new('E')), SlotKind::CLASSIC
             ),
-            make_slot!(
+            Slot::new(
                 100.0,
                 100.0,
                 Some(Payload::new('E')),
-                Some(Payload::new('F'))
+                Some(Payload::new('F')), SlotKind::CLASSIC
             ),
-            make_slot!(100.0, 100.0, None, Some(Payload::new('G'))),
-            make_slot!(100.0, 100.0, None, Some(Payload::new('G'))),
+            Slot::new(100.0, 100.0, None, Some(Payload::new('G')), SlotKind::CLASSIC),
+            Slot::new(100.0, 100.0, None, Some(Payload::new('G')), SlotKind::CLASSIC),
         ];
 
         dispatcher.calculate_cargo_balance(&slots);
@@ -579,13 +579,13 @@ mod tests {
             cargo_balance: HashMap::new(),
         };
         let slots = vec![
-            make_slot!(
+            Slot::new(
                 100.0,
                 100.0,
                 Some(Payload::new('A')),
-                Some(Payload::new('B'))
+                Some(Payload::new('B')), SlotKind::CLASSIC
             ),
-            make_slot!(100.0, 100.0, None, Some(Payload::new('C'))),
+            Slot::new(100.0, 100.0, None, Some(Payload::new('C')), SlotKind::CLASSIC),
         ];
 
         assert_eq!(dispatcher.find_pit(&slots), None);
@@ -597,11 +597,11 @@ mod tests {
             cargo_balance: HashMap::new(),
         };
         let slots = vec![
-            make_slot!(
+            Slot::new(
                 100.0,
                 100.0,
                 Some(Payload::new('A')),
-                Some(Payload::new('B'))
+                Some(Payload::new('B')), SlotKind::CLASSIC
             ),
             make_slot_pit!(100.0, 100.0),
         ];
@@ -615,32 +615,32 @@ mod tests {
             cargo_balance: HashMap::new(),
         };
         let slots = vec![
-            make_slot!(
+            Slot::new(
                 100.0,
                 100.0,
                 Some(Payload::new('A')),
-                Some(Payload::new('C'))
+                Some(Payload::new('C')), SlotKind::CLASSIC
             ),
-            make_slot!(
+            Slot::new(
                 100.0,
                 100.0,
                 Some(Payload::new('C')),
-                Some(Payload::new('A'))
+                Some(Payload::new('A')), SlotKind::CLASSIC
             ),
-            make_slot!(
+            Slot::new(
                 100.0,
                 100.0,
                 Some(Payload::new('E')),
-                Some(Payload::new('E'))
+                Some(Payload::new('E')), SlotKind::CLASSIC
             ),
-            make_slot!(
+            Slot::new(
                 100.0,
                 100.0,
                 Some(Payload::new('E')),
-                Some(Payload::new('F'))
+                Some(Payload::new('F')), SlotKind::CLASSIC
             ),
-            make_slot!(100.0, 100.0, None, Some(Payload::new('G'))),
-            make_slot!(100.0, 100.0, None, Some(Payload::new('G'))),
+            Slot::new(100.0, 100.0, None, Some(Payload::new('G')), SlotKind::CLASSIC),
+            Slot::new(100.0, 100.0, None, Some(Payload::new('G')), SlotKind::CLASSIC),
         ];
 
         dispatcher.calculate_cargo_balance(&slots);
@@ -656,26 +656,26 @@ mod tests {
             cargo_balance: HashMap::new(),
         };
         let slots = vec![
-            make_slot!(
+            Slot::new(
                 100.0,
                 100.0,
                 Some(Payload::new('A')),
-                Some(Payload::new('C'))
+                Some(Payload::new('C')), SlotKind::CLASSIC
             ),
-            make_slot!(
+            Slot::new(
                 100.0,
                 100.0,
                 Some(Payload::new('C')),
-                Some(Payload::new('A'))
+                Some(Payload::new('A')), SlotKind::CLASSIC
             ),
-            make_slot!(
+            Slot::new(
                 100.0,
                 100.0,
                 Some(Payload::new('E')),
-                Some(Payload::new('E'))
+                Some(Payload::new('E')), SlotKind::CLASSIC
             ),
-            make_slot!(100.0, 100.0, None, Some(Payload::new('G'))),
-            make_slot!(100.0, 100.0, None, Some(Payload::new('G'))),
+            Slot::new(100.0, 100.0, None, Some(Payload::new('G')), SlotKind::CLASSIC),
+            Slot::new(100.0, 100.0, None, Some(Payload::new('G')), SlotKind::CLASSIC),
         ];
 
         dispatcher.calculate_cargo_balance(&slots);
@@ -691,18 +691,20 @@ mod tests {
             cargo_balance: HashMap::new(),
         };
         let slots = vec![
-            make_slot!(
+            Slot::new(
                 100.0,
                 100.0,
                 Some(Payload::new('X')),
-                Some(Payload::new('B'))
+                Some(Payload::new('B')),                SlotKind::CLASSIC
+
             ),
-            make_slot!(100.0, 100.0, None, Some(Payload::new('B'))),
-            make_slot!(
+            Slot::new(100.0, 100.0, None, Some(Payload::new('B')), SlotKind::CLASSIC),
+            Slot::new(
                 100.0,
                 100.0,
                 Some(Payload::new('A')),
-                Some(Payload::new('B'))
+                Some(Payload::new('B')),
+                SlotKind::CLASSIC
             ),
         ];
 
