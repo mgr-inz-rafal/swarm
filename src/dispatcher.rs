@@ -5,6 +5,7 @@ use super::carrier::*;
 use super::payload::*;
 use super::slot::*;
 
+#[derive(Default)]
 pub struct Dispatcher<T: PartialEq + Eq + Hash + Copy> {
     pub(crate) cargo_balance: HashMap<T, i32>,
 }

@@ -39,6 +39,7 @@ fn _debug_dump_slots(slots: &[Slot<char>]) {
     }
 }
 
+#[derive(Default)]
 pub struct Swarm<T: PartialEq + Eq + Hash + Copy> {
     carriers: Vec<Carrier<T>>,
     slots: Vec<Slot<T>>,
