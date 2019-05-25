@@ -283,17 +283,24 @@ mod tests {
             cargo_balance: HashMap::new(),
         };
         let slots = vec![
-            make_slot!(
+            Slot::new(
                 100.0,
                 100.0,
-                Some(Payload::from_char('X')),
-                Some(Payload::from_char('B'))
+                Some(Payload::new('A')),
+                Some(Payload::new('B')),
+                SlotKind::CLASSIC,
             ),
-            make_slot!(100.0, 100.0, None, Some(Payload::from_char('B'))),
+            Slot::new(
+                100.0,
+                100.0,
+                None,
+                Some(Payload::new('B')),
+                SlotKind::CLASSIC,
+            ),
         ];
 
         assert_eq!(
-            dispatcher.find_slot_for_target(&slots, Some(Payload::from_char('B'))),
+            dispatcher.find_slot_for_target(&slots, Some(Payload::new('B'))),
             Some(1)
         )
     }
@@ -304,8 +311,8 @@ mod tests {
             cargo_balance: HashMap::new(),
         };
         let slots = vec![
-            make_slot!(100.0, 100.0, None, Some(Payload::from_char('X'))),
-            make_slot!(100.0, 100.0, None, Some(Payload::from_char('Y'))),
+            make_slot!(100.0, 100.0, None, Some(Payload::new('X'))),
+            make_slot!(100.0, 100.0, None, Some(Payload::new('Y'))),
         ];
 
         // Slot without current payload cannot have mismatched payload
@@ -321,14 +328,14 @@ mod tests {
             make_slot!(
                 100.0,
                 100.0,
-                Some(Payload::from_char('X')),
-                Some(Payload::from_char('X'))
+                Some(Payload::new('X')),
+                Some(Payload::new('X'))
             ),
             make_slot!(
                 100.0,
                 100.0,
-                Some(Payload::from_char('A')),
-                Some(Payload::from_char('Y'))
+                Some(Payload::new('A')),
+                Some(Payload::new('Y'))
             ),
         ];
 
@@ -347,14 +354,14 @@ mod tests {
             make_slot!(
                 100.0,
                 100.0,
-                Some(Payload::from_char('Y')),
-                Some(Payload::from_char('Y'))
+                Some(Payload::new('Y')),
+                Some(Payload::new('Y'))
             ),
             make_slot!(
                 100.0,
                 100.0,
-                Some(Payload::from_char('A')),
-                Some(Payload::from_char('A'))
+                Some(Payload::new('A')),
+                Some(Payload::new('A'))
             ),
         ];
 
@@ -370,14 +377,14 @@ mod tests {
             make_slot!(
                 100.0,
                 100.0,
-                Some(Payload::from_char('A')),
-                Some(Payload::from_char('B'))
+                Some(Payload::new('A')),
+                Some(Payload::new('B'))
             ),
             make_slot!(
                 100.0,
                 100.0,
-                Some(Payload::from_char('X')),
-                Some(Payload::from_char('B'))
+                Some(Payload::new('X')),
+                Some(Payload::new('B'))
             ),
         ];
 
@@ -396,10 +403,10 @@ mod tests {
             make_slot!(
                 100.0,
                 100.0,
-                Some(Payload::from_char('A')),
-                Some(Payload::from_char('B'))
+                Some(Payload::new('A')),
+                Some(Payload::new('B'))
             ),
-            make_slot!(100.0, 100.0, None, Some(Payload::from_char('B'))),
+            make_slot!(100.0, 100.0, None, Some(Payload::new('B'))),
         ];
 
         assert_eq!(
@@ -417,10 +424,10 @@ mod tests {
             make_slot!(
                 100.0,
                 100.0,
-                Some(Payload::from_char('A')),
-                Some(Payload::from_char('B'))
+                Some(Payload::new('A')),
+                Some(Payload::new('B'))
             ),
-            make_slot!(100.0, 100.0, None, Some(Payload::from_char('A'))),
+            make_slot!(100.0, 100.0, None, Some(Payload::new('A'))),
         ];
 
         assert_eq!(
@@ -438,13 +445,13 @@ mod tests {
             make_slot!(
                 100.0,
                 100.0,
-                Some(Payload::from_char('A')),
-                Some(Payload::from_char('B'))
+                Some(Payload::new('A')),
+                Some(Payload::new('B'))
             ),
-            make_slot!(100.0, 100.0, None, Some(Payload::from_char('C'))),
+            make_slot!(100.0, 100.0, None, Some(Payload::new('C'))),
         ];
 
-        let p = Payload::from_char('C');
+        let p = Payload::new('C');
         let mut ii = 0;
 
         assert_eq!(
@@ -463,13 +470,13 @@ mod tests {
             make_slot!(
                 100.0,
                 100.0,
-                Some(Payload::from_char('A')),
-                Some(Payload::from_char('C'))
+                Some(Payload::new('A')),
+                Some(Payload::new('C'))
             ),
-            make_slot!(100.0, 100.0, None, Some(Payload::from_char('D'))),
+            make_slot!(100.0, 100.0, None, Some(Payload::new('D'))),
         ];
 
-        let p = Payload::from_char('C');
+        let p = Payload::new('C');
         let mut ii = 0;
 
         assert_eq!(
@@ -487,29 +494,29 @@ mod tests {
             make_slot!(
                 100.0,
                 100.0,
-                Some(Payload::from_char('A')),
-                Some(Payload::from_char('C'))
+                Some(Payload::new('A')),
+                Some(Payload::new('C'))
             ),
             make_slot!(
                 100.0,
                 100.0,
-                Some(Payload::from_char('C')),
-                Some(Payload::from_char('A'))
+                Some(Payload::new('C')),
+                Some(Payload::new('A'))
             ),
             make_slot!(
                 100.0,
                 100.0,
-                Some(Payload::from_char('E')),
-                Some(Payload::from_char('E'))
+                Some(Payload::new('E')),
+                Some(Payload::new('E'))
             ),
             make_slot!(
                 100.0,
                 100.0,
-                Some(Payload::from_char('E')),
-                Some(Payload::from_char('F'))
+                Some(Payload::new('E')),
+                Some(Payload::new('F'))
             ),
-            make_slot!(100.0, 100.0, None, Some(Payload::from_char('G'))),
-            make_slot!(100.0, 100.0, None, Some(Payload::from_char('G'))),
+            make_slot!(100.0, 100.0, None, Some(Payload::new('G'))),
+            make_slot!(100.0, 100.0, None, Some(Payload::new('G'))),
         ];
 
         dispatcher.calculate_cargo_balance(&slots);
@@ -530,29 +537,29 @@ mod tests {
             make_slot!(
                 100.0,
                 100.0,
-                Some(Payload::from_char('A')),
-                Some(Payload::from_char('C'))
+                Some(Payload::new('A')),
+                Some(Payload::new('C'))
             ),
             make_slot!(
                 100.0,
                 100.0,
-                Some(Payload::from_char('C')),
-                Some(Payload::from_char('A'))
+                Some(Payload::new('C')),
+                Some(Payload::new('A'))
             ),
             make_slot!(
                 100.0,
                 100.0,
-                Some(Payload::from_char('E')),
-                Some(Payload::from_char('E'))
+                Some(Payload::new('E')),
+                Some(Payload::new('E'))
             ),
             make_slot!(
                 100.0,
                 100.0,
-                Some(Payload::from_char('E')),
-                Some(Payload::from_char('F'))
+                Some(Payload::new('E')),
+                Some(Payload::new('F'))
             ),
-            make_slot!(100.0, 100.0, None, Some(Payload::from_char('G'))),
-            make_slot!(100.0, 100.0, None, Some(Payload::from_char('G'))),
+            make_slot!(100.0, 100.0, None, Some(Payload::new('G'))),
+            make_slot!(100.0, 100.0, None, Some(Payload::new('G'))),
         ];
 
         dispatcher.calculate_cargo_balance(&slots);
@@ -575,10 +582,10 @@ mod tests {
             make_slot!(
                 100.0,
                 100.0,
-                Some(Payload::from_char('A')),
-                Some(Payload::from_char('B'))
+                Some(Payload::new('A')),
+                Some(Payload::new('B'))
             ),
-            make_slot!(100.0, 100.0, None, Some(Payload::from_char('C'))),
+            make_slot!(100.0, 100.0, None, Some(Payload::new('C'))),
         ];
 
         assert_eq!(dispatcher.find_pit(&slots), None);
@@ -593,8 +600,8 @@ mod tests {
             make_slot!(
                 100.0,
                 100.0,
-                Some(Payload::from_char('A')),
-                Some(Payload::from_char('B'))
+                Some(Payload::new('A')),
+                Some(Payload::new('B'))
             ),
             make_slot_pit!(100.0, 100.0),
         ];
@@ -611,29 +618,29 @@ mod tests {
             make_slot!(
                 100.0,
                 100.0,
-                Some(Payload::from_char('A')),
-                Some(Payload::from_char('C'))
+                Some(Payload::new('A')),
+                Some(Payload::new('C'))
             ),
             make_slot!(
                 100.0,
                 100.0,
-                Some(Payload::from_char('C')),
-                Some(Payload::from_char('A'))
+                Some(Payload::new('C')),
+                Some(Payload::new('A'))
             ),
             make_slot!(
                 100.0,
                 100.0,
-                Some(Payload::from_char('E')),
-                Some(Payload::from_char('E'))
+                Some(Payload::new('E')),
+                Some(Payload::new('E'))
             ),
             make_slot!(
                 100.0,
                 100.0,
-                Some(Payload::from_char('E')),
-                Some(Payload::from_char('F'))
+                Some(Payload::new('E')),
+                Some(Payload::new('F'))
             ),
-            make_slot!(100.0, 100.0, None, Some(Payload::from_char('G'))),
-            make_slot!(100.0, 100.0, None, Some(Payload::from_char('G'))),
+            make_slot!(100.0, 100.0, None, Some(Payload::new('G'))),
+            make_slot!(100.0, 100.0, None, Some(Payload::new('G'))),
         ];
 
         dispatcher.calculate_cargo_balance(&slots);
@@ -652,23 +659,23 @@ mod tests {
             make_slot!(
                 100.0,
                 100.0,
-                Some(Payload::from_char('A')),
-                Some(Payload::from_char('C'))
+                Some(Payload::new('A')),
+                Some(Payload::new('C'))
             ),
             make_slot!(
                 100.0,
                 100.0,
-                Some(Payload::from_char('C')),
-                Some(Payload::from_char('A'))
+                Some(Payload::new('C')),
+                Some(Payload::new('A'))
             ),
             make_slot!(
                 100.0,
                 100.0,
-                Some(Payload::from_char('E')),
-                Some(Payload::from_char('E'))
+                Some(Payload::new('E')),
+                Some(Payload::new('E'))
             ),
-            make_slot!(100.0, 100.0, None, Some(Payload::from_char('G'))),
-            make_slot!(100.0, 100.0, None, Some(Payload::from_char('G'))),
+            make_slot!(100.0, 100.0, None, Some(Payload::new('G'))),
+            make_slot!(100.0, 100.0, None, Some(Payload::new('G'))),
         ];
 
         dispatcher.calculate_cargo_balance(&slots);
@@ -687,15 +694,15 @@ mod tests {
             make_slot!(
                 100.0,
                 100.0,
-                Some(Payload::from_char('X')),
-                Some(Payload::from_char('B'))
+                Some(Payload::new('X')),
+                Some(Payload::new('B'))
             ),
-            make_slot!(100.0, 100.0, None, Some(Payload::from_char('B'))),
+            make_slot!(100.0, 100.0, None, Some(Payload::new('B'))),
             make_slot!(
                 100.0,
                 100.0,
-                Some(Payload::from_char('A')),
-                Some(Payload::from_char('B'))
+                Some(Payload::new('A')),
+                Some(Payload::new('B'))
             ),
         ];
 

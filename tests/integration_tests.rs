@@ -2,6 +2,7 @@
 extern crate swarm;
 use swarm::{Carrier, Payload, Slot, SlotKind, State};
 
+/*
 #[test]
 fn conduct_to_targetting() {
     let mut game = swarm::new();
@@ -34,3 +35,4 @@ fn conduct_to_targetting() {
         panic!("Found Carrier that is 'targetting' but has no target set")
     }
 }
+*/
