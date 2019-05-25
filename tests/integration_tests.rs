@@ -1,4 +1,3 @@
-#[macro_use(make_slot)]
 extern crate swarm;
 use swarm::{Carrier, Payload, Slot, SlotKind, State};
 
