@@ -44,6 +44,19 @@ impl<T: PartialEq + Eq + Hash + Copy> Slot<T> {
         [self.current_payload, self.target_payload]
     }
 
+    pub fn set_current_payload(&mut self, p: Option<Payload<T>>) {
+        self.current_payload = p;
+    }
+
+    pub fn set_target_payload(&mut self, p: Option<Payload<T>>) {
+        self.target_payload = p;
+    }
+
+    pub fn set_payloads(&mut self, p: Option<Payload<T>>) {
+        self.current_payload = p;
+        self.target_payload = p;
+    }
+
     pub fn is_taken_care_of(&self) -> bool {
         self.taken_care_of
     }

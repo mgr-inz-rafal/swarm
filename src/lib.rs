@@ -75,8 +75,8 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
         &self.carriers
     }
 
-    pub fn get_slots(&self) -> &Vec<Slot<T>> {
-        &self.slots
+    pub fn get_slots(&mut self) -> &mut Vec<Slot<T>> {
+        &mut self.slots
     }
 
     pub fn tick(&mut self) {
