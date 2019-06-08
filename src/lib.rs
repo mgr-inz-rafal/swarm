@@ -92,6 +92,10 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
         self.dispatcher.conduct(&mut self.carriers, &mut slots);
         self.carriers.iter_mut().for_each(|x| x.tick(slots));
     }
+
+    pub fn slot_data_changed(&mut self) {
+        self.dispatcher.precalc(&self.slots);
+    }
 }
 
 #[cfg(test)]
