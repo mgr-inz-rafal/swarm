@@ -179,7 +179,6 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
         if let Some(cargo) = excessive {
             if let Some(slot_index) = self.find_slot_that_contains(slots, *cargo.0) {
                 if !slots[slot_index].taken_care_of {
-                    println!("Going to pit");
                     return Some(slot_index);
                 }
             }
