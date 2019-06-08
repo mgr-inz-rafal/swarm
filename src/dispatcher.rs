@@ -11,7 +11,7 @@ pub struct Dispatcher<T: PartialEq + Eq + Hash + Copy> {
 }
 
 impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
-    pub fn calculate_cargo_balance(&mut self, slots: &[Slot<T>]) {
+    fn calculate_cargo_balance(&mut self, slots: &[Slot<T>]) {
         self.cargo_balance.clear();
 
         slots.iter().for_each(|x| {
