@@ -1,4 +1,3 @@
-
 #[macro_export]
 macro_rules! make_slot_pit {
     ($x: expr, $y: expr) => {

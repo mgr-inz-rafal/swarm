@@ -4,13 +4,11 @@ pub struct Payload<T: PartialEq> {
     pub taken_from: Option<usize>, // TODO: Make pub(crate) and allow consructing from T
 }
 
-impl<T: PartialEq> Payload<T>
-{
-    pub fn new(cargo: T) -> Payload<T>
-    {
-        Payload{
+impl<T: PartialEq> Payload<T> {
+    pub fn new(cargo: T) -> Payload<T> {
+        Payload {
             cargo,
-            taken_from: None
+            taken_from: None,
         }
     }
 }

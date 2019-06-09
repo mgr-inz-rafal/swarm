@@ -812,19 +812,25 @@ mod tests {
                 100.0,
                 100.0,
                 Some(Payload::new('X')),
-                Some(Payload::new('B')),                SlotKind::CLASSIC
-
+                Some(Payload::new('B')),
+                SlotKind::CLASSIC,
             ),
-            Slot::new(100.0, 100.0, None, Some(Payload::new('B')), SlotKind::CLASSIC),
+            Slot::new(
+                100.0,
+                100.0,
+                None,
+                Some(Payload::new('B')),
+                SlotKind::CLASSIC,
+            ),
             Slot::new(
                 100.0,
                 100.0,
                 Some(Payload::new('A')),
                 Some(Payload::new('B')),
-                SlotKind::CLASSIC
+                SlotKind::CLASSIC,
             ),
         ];
-        
+
         assert_eq!(dispatcher.find_slot_that_contains(&slots, 'A'), Some(2));
         assert_eq!(dispatcher.find_slot_that_contains(&slots, 'X'), Some(0));
         assert_eq!(dispatcher.find_slot_that_contains(&slots, 'Y'), None);
