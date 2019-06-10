@@ -44,7 +44,7 @@ pub struct Swarm<T: PartialEq + Eq + Hash + Copy> {
     carriers: Vec<Carrier<T>>,
     slots: Vec<Slot<T>>,
     first_tick: bool,
-    idle_ticks: u64,
+    idle_ticks: u8,
     dispatcher: Dispatcher<T>,
 }
 
@@ -89,6 +89,21 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
         !self.carriers.iter().any(|c| !c.state.is_idle())
     }
 
+    fn job_finished(&mut self) -> bool {
+        if self.all_carriers_idle() {
+            self.idle_ticks += 1;
+            if self.idle_ticks == std::u8::MAX {
+                self.idle_ticks = 3;
+            }
+            if 2 == self.idle_ticks {
+                return true;
+            }
+        } else {
+            self.idle_ticks = 0;
+        }
+        false
+    }
+
     pub fn tick(&mut self) {
         let mut slots = &mut self.slots;
         if self.first_tick {
@@ -97,14 +112,8 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
         }
         self.dispatcher.conduct(&mut self.carriers, &mut slots);
         self.carriers.iter_mut().for_each(|x| x.tick(slots));
-        if self.all_carriers_idle() {
-            self.idle_ticks += 1;
-            if 2 == self.idle_ticks
-            {
-                // Call "finished" callback
-            }
-        } else {
-            self.idle_ticks = 0;
+        if self.job_finished() {
+            // Call "finished" callback
         }
     }
 

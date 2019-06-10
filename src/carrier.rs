@@ -29,7 +29,7 @@ impl State {
     pub(crate) fn is_idle(&self) -> bool {
         match *self {
             State::IDLE => true,
-            _ => false
+            _ => false,
         }
     }
 }
