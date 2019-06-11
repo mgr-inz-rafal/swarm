@@ -40,16 +40,17 @@ fn _debug_dump_slots(slots: &[Slot<char>]) {
 }
 
 #[derive(Default)]
-pub struct Swarm<T: PartialEq + Eq + Hash + Copy> {
+pub struct Swarm<T: PartialEq + Eq + Hash + Copy, F: Fn()> {
     carriers: Vec<Carrier<T>>,
     slots: Vec<Slot<T>>,
     first_tick: bool,
     idle_ticks: u8,
     dispatcher: Dispatcher<T>,
+    shift_finished_callback: Option<F>
 }
 
-impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
-    pub fn new() -> Swarm<T> {
+impl<T: PartialEq + Eq + Hash + Copy, F: Fn()> Swarm<T, F> {
+    pub fn new() -> Swarm<T, F> {
         Swarm {
             carriers: Vec::new(),
             slots: Vec::new(),
@@ -58,7 +59,13 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
             dispatcher: Dispatcher {
                 cargo_balance: HashMap::new(),
             },
+            shift_finished_callback: None
         }
+    }
+
+    pub fn set_callback_shift_finished(&mut self, foo: Option<F>)
+    {
+        self.shift_finished_callback = foo;
     }
 
     fn add_object<U>(vec: &mut Vec<U>, obj: U) {
@@ -66,11 +73,11 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
     }
 
     pub fn add_carrier(&mut self, carrier: Carrier<T>) {
-        Swarm::<T>::add_object(&mut self.carriers, carrier);
+        Swarm::<T, F>::add_object(&mut self.carriers, carrier);
     }
 
     pub fn add_slot(&mut self, slot: Slot<T>) {
-        Swarm::<T>::add_object(&mut self.slots, slot);
+        Swarm::<T, F>::add_object(&mut self.slots, slot);
     }
 
     pub fn get_carriers(&self) -> &Vec<Carrier<T>> {
@@ -113,7 +120,9 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
         self.dispatcher.conduct(&mut self.carriers, &mut slots);
         self.carriers.iter_mut().for_each(|x| x.tick(slots));
         if self.job_finished() {
-            // Call "finished" callback
+            if let Some(cb) = &self.shift_finished_callback{
+                cb();
+            }
         }
     }
 
