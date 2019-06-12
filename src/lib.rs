@@ -40,7 +40,7 @@ fn _debug_dump_slots(slots: &[Slot<char>]) {
 }
 
 #[derive(Default)]
-pub struct Swarm<T: PartialEq + Eq + Hash + Copy, F: Fn()> {
+pub struct Swarm<T: PartialEq + Eq + Hash + Copy, F: FnMut()> {
     carriers: Vec<Carrier<T>>,
     slots: Vec<Slot<T>>,
     first_tick: bool,
@@ -49,7 +49,7 @@ pub struct Swarm<T: PartialEq + Eq + Hash + Copy, F: Fn()> {
     shift_finished_callback: Option<F>
 }
 
-impl<T: PartialEq + Eq + Hash + Copy, F: Fn()> Swarm<T, F> {
+impl<T: PartialEq + Eq + Hash + Copy, F: FnMut()> Swarm<T, F> {
     pub fn new() -> Swarm<T, F> {
         Swarm {
             carriers: Vec::new(),
@@ -120,7 +120,7 @@ impl<T: PartialEq + Eq + Hash + Copy, F: Fn()> Swarm<T, F> {
         self.dispatcher.conduct(&mut self.carriers, &mut slots);
         self.carriers.iter_mut().for_each(|x| x.tick(slots));
         if self.job_finished() {
-            if let Some(cb) = &self.shift_finished_callback{
+            if let Some(cb) = &mut self.shift_finished_callback{
                 cb();
             }
         }
