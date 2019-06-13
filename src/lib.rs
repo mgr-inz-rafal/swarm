@@ -95,7 +95,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
             if self.idle_ticks == std::u8::MAX {
                 self.idle_ticks = 3;
             }
-            if 2 == self.idle_ticks {
+            if self.idle_ticks >= 2 {
                 return true;
             }
         } else {
