@@ -40,17 +40,16 @@ fn _debug_dump_slots(slots: &[Slot<char>]) {
 }
 
 #[derive(Default)]
-pub struct Swarm<T: PartialEq + Eq + Hash + Copy, F: FnMut()> {
+pub struct Swarm<T: PartialEq + Eq + Hash + Copy> {
     carriers: Vec<Carrier<T>>,
     slots: Vec<Slot<T>>,
     first_tick: bool,
     idle_ticks: u8,
     dispatcher: Dispatcher<T>,
-    shift_finished_callback: Option<F>
 }
 
-impl<T: PartialEq + Eq + Hash + Copy, F: FnMut()> Swarm<T, F> {
-    pub fn new() -> Swarm<T, F> {
+impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
+    pub fn new() -> Swarm<T> {
         Swarm {
             carriers: Vec::new(),
             slots: Vec::new(),
@@ -59,13 +58,7 @@ impl<T: PartialEq + Eq + Hash + Copy, F: FnMut()> Swarm<T, F> {
             dispatcher: Dispatcher {
                 cargo_balance: HashMap::new(),
             },
-            shift_finished_callback: None
         }
-    }
-
-    pub fn set_callback_shift_finished(&mut self, foo: Option<F>)
-    {
-        self.shift_finished_callback = foo;
     }
 
     fn add_object<U>(vec: &mut Vec<U>, obj: U) {
@@ -73,11 +66,11 @@ impl<T: PartialEq + Eq + Hash + Copy, F: FnMut()> Swarm<T, F> {
     }
 
     pub fn add_carrier(&mut self, carrier: Carrier<T>) {
-        Swarm::<T, F>::add_object(&mut self.carriers, carrier);
+        Swarm::<T>::add_object(&mut self.carriers, carrier);
     }
 
     pub fn add_slot(&mut self, slot: Slot<T>) {
-        Swarm::<T, F>::add_object(&mut self.slots, slot);
+        Swarm::<T>::add_object(&mut self.slots, slot);
     }
 
     pub fn get_carriers(&self) -> &Vec<Carrier<T>> {
@@ -111,7 +104,7 @@ impl<T: PartialEq + Eq + Hash + Copy, F: FnMut()> Swarm<T, F> {
         false
     }
 
-    pub fn tick(&mut self) {
+    pub fn tick(&mut self) -> bool {
         let mut slots = &mut self.slots;
         if self.first_tick {
             self.dispatcher.precalc(&slots);
@@ -119,11 +112,7 @@ impl<T: PartialEq + Eq + Hash + Copy, F: FnMut()> Swarm<T, F> {
         }
         self.dispatcher.conduct(&mut self.carriers, &mut slots);
         self.carriers.iter_mut().for_each(|x| x.tick(slots));
-        if self.job_finished() {
-            if let Some(cb) = &mut self.shift_finished_callback{
-                cb();
-            }
-        }
+        self.job_finished()
     }
 
     pub fn slot_data_changed(&mut self) {
