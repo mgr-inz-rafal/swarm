@@ -35,3 +35,32 @@ fn conduct_to_targetting() {
         panic!("Found Carrier that is 'targetting' but has no target set")
     }
 }
+
+#[test]
+fn idle_carriers_reporting() {
+    let mut game = swarm::Swarm::new();
+
+    game.add_carrier(Carrier::new(0.0, 0.0));
+    game.add_carrier(Carrier::new(0.0, 0.0));
+    game.add_slot(Slot::new(
+        100.0,
+        100.0,
+        Some(swarm::Payload::new('X')),
+        None,
+        SlotKind::CLASSIC,
+    ));
+    game.add_slot(Slot::new(
+        100.0,
+        100.0,
+        None,
+        Some(swarm::Payload::new('X')),
+        SlotKind::CLASSIC,
+    ));
+
+    let mut all_carriers_idle = game.tick();
+    assert!(!all_carriers_idle);
+    for _ in 1..100 {
+        all_carriers_idle = game.tick();
+    }
+    assert!(all_carriers_idle);
+}

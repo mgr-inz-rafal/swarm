@@ -25,6 +25,15 @@ pub enum State {
     _DEBUG_,
 }
 
+impl State {
+    pub(crate) fn is_idle(&self) -> bool {
+        match *self {
+            State::IDLE => true,
+            _ => false,
+        }
+    }
+}
+
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub(crate) enum RotationDirection {
     CLOCKWISE,

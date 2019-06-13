@@ -44,6 +44,7 @@ pub struct Swarm<T: PartialEq + Eq + Hash + Copy> {
     carriers: Vec<Carrier<T>>,
     slots: Vec<Slot<T>>,
     first_tick: bool,
+    idle_ticks: u8,
     dispatcher: Dispatcher<T>,
 }
 
@@ -53,6 +54,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
             carriers: Vec::new(),
             slots: Vec::new(),
             first_tick: true,
+            idle_ticks: 0,
             dispatcher: Dispatcher {
                 cargo_balance: HashMap::new(),
             },
@@ -83,7 +85,26 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
         &mut self.slots
     }
 
-    pub fn tick(&mut self) {
+    fn all_carriers_idle(&self) -> bool {
+        !self.carriers.iter().any(|c| !c.state.is_idle())
+    }
+
+    fn job_finished(&mut self) -> bool {
+        if self.all_carriers_idle() {
+            self.idle_ticks += 1;
+            if self.idle_ticks == std::u8::MAX {
+                self.idle_ticks = 3;
+            }
+            if self.idle_ticks >= 2 {
+                return true;
+            }
+        } else {
+            self.idle_ticks = 0;
+        }
+        false
+    }
+
+    pub fn tick(&mut self) -> bool {
         let mut slots = &mut self.slots;
         if self.first_tick {
             self.dispatcher.precalc(&slots);
@@ -91,6 +112,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
         }
         self.dispatcher.conduct(&mut self.carriers, &mut slots);
         self.carriers.iter_mut().for_each(|x| x.tick(slots));
+        self.job_finished()
     }
 
     pub fn slot_data_changed(&mut self) {
