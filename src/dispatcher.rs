@@ -306,13 +306,10 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
                 distances.push((i, self.get_slot_distance(i, target.taken_from.unwrap())));
             }
         });
-
         if distances.is_empty() { return None };
-        let closest = distances
+        Some(distances
             .iter()
-            .min_by(|a, b| (a.1).partial_cmp(&b.1).unwrap()).unwrap();
-
-        Some(closest.0)
+            .min_by(|a, b| (a.1).partial_cmp(&b.1).unwrap()).unwrap().0)
     }
 
     fn find_temporary_slot(&self, slots: &[Slot<T>], target: Option<Payload<T>>) -> Option<usize> {
