@@ -117,7 +117,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
         if self.first_tick {
             self.dispatcher.precalc(&slots);
             self.first_tick = false;
-            _debug_dump_slot_distances(&slots, &self.dispatcher);
+            //_debug_dump_slot_distances(&slots, &self.dispatcher);
         }
         self.dispatcher.conduct(&mut self.carriers, &mut slots);
         self.carriers.iter_mut().for_each(|x| x.tick(slots));

@@ -287,7 +287,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
         }
     }
 
-    fn find_any_temporary_slot(&self, slots: &[Slot<T>], target: Payload<T>) -> Option<usize> {
+    fn _find_any_temporary_slot(&self, slots: &[Slot<T>], target: Payload<T>) -> Option<usize> {
         if let Some((index, _)) = slots.iter().enumerate().find(|(index, _)| {
             slots[*index].current_payload == None
                 && !slots[*index].taken_care_of
@@ -299,9 +299,25 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
         }
     }
 
+    fn find_closest_temporary_slot(&self, slots: &[Slot<T>], target: Payload<T>) -> Option<usize> {
+        let mut distances = Vec::new();
+        slots.iter().enumerate().for_each(|(i, s)| {
+            if s.current_payload == None && !s.taken_care_of && target.taken_from != Some(i) {
+                distances.push((i, self.get_slot_distance(i, target.taken_from.unwrap())));
+            }
+        });
+
+        if distances.is_empty() { return None };
+        let closest = distances
+            .iter()
+            .min_by(|a, b| (a.1).partial_cmp(&b.1).unwrap()).unwrap();
+
+        Some(closest.0)
+    }
+
     fn find_temporary_slot(&self, slots: &[Slot<T>], target: Option<Payload<T>>) -> Option<usize> {
         let t = target.expect("Trying to find slot for empty target");
-        self.find_any_temporary_slot(slots, t)
+        self.find_closest_temporary_slot(slots, t)
     }
 }
 
@@ -865,7 +881,7 @@ mod tests {
     }
 
     #[test]
-    fn find_temporary_slot() {
+    fn find_any_temporary_slot() {
         let mut dispatcher = Dispatcher::new();
         let slots = vec![
             Slot::new(
@@ -889,8 +905,41 @@ mod tests {
 
         dispatcher.calculate_slot_distances(&slots);
         let tmp_slot = dispatcher
-            .find_any_temporary_slot(&slots, Payload::new('A'))
+            ._find_any_temporary_slot(&slots, Payload::new('A'))
             .unwrap();
         assert_eq!(tmp_slot, 2);
+    }
+
+    #[test]
+    fn find_closest_temporary_slot() {
+        let mut dispatcher = Dispatcher::new();
+        let slots = vec![
+            Slot::new(
+                200.0,
+                210.0,
+                Some(Payload::new('B')),
+                Some(Payload::new('A')),
+                SlotKind::CLASSIC,
+            ),
+            Slot::new(
+                200.0,
+                300.0,
+                Some(Payload::new('A')),
+                Some(Payload::new('B')),
+                SlotKind::CLASSIC,
+            ),
+            Slot::new(600.0, 550.0, None, None, SlotKind::CLASSIC),
+            Slot::new(500.0, 450.0, None, None, SlotKind::CLASSIC),
+            Slot::new(300.0, 350.0, None, None, SlotKind::CLASSIC),
+        ];
+
+        let mut payload = Payload::new('A');
+        payload.taken_from = Some(1);
+
+        dispatcher.calculate_slot_distances(&slots);
+        let tmp_slot = dispatcher
+            .find_closest_temporary_slot(&slots, payload)
+            .unwrap();
+        assert_eq!(tmp_slot, 4);
     }
 }
