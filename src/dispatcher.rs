@@ -287,8 +287,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
         }
     }
 
-    fn find_any_temporary_slot(&self, slots: &[Slot<T>], target: Payload<T>) -> Option<usize> 
-    {
+    fn find_any_temporary_slot(&self, slots: &[Slot<T>], target: Payload<T>) -> Option<usize> {
         if let Some((index, _)) = slots.iter().enumerate().find(|(index, _)| {
             slots[*index].current_payload == None
                 && !slots[*index].taken_care_of
@@ -863,5 +862,35 @@ mod tests {
             dispatcher.get_slot_distance(2, 1),
             dispatcher.get_slot_distance(1, 2)
         ))
+    }
+
+    #[test]
+    fn find_temporary_slot() {
+        let mut dispatcher = Dispatcher::new();
+        let slots = vec![
+            Slot::new(
+                200.0,
+                210.0,
+                Some(Payload::new('B')),
+                Some(Payload::new('A')),
+                SlotKind::CLASSIC,
+            ),
+            Slot::new(
+                200.0,
+                300.0,
+                Some(Payload::new('A')),
+                Some(Payload::new('B')),
+                SlotKind::CLASSIC,
+            ),
+            Slot::new(600.0, 550.0, None, None, SlotKind::CLASSIC),
+            Slot::new(500.0, 450.0, None, None, SlotKind::CLASSIC),
+            Slot::new(300.0, 350.0, None, None, SlotKind::CLASSIC),
+        ];
+
+        dispatcher.calculate_slot_distances(&slots);
+        let tmp_slot = dispatcher
+            .find_any_temporary_slot(&slots, Payload::new('A'))
+            .unwrap();
+        assert_eq!(tmp_slot, 2);
     }
 }
