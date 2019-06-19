@@ -4,6 +4,7 @@ use std::hash::Hash;
 use super::carrier::*;
 use super::payload::*;
 use super::slot::*;
+use super::position::*;
 
 #[derive(Default)]
 pub struct Dispatcher<T: PartialEq + Eq + Hash + Copy> {
@@ -37,16 +38,18 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
         *self.slot_distances.get(&(s1, s2)).unwrap()
     }
 
+    fn distance_between_points(p1: &Position, p2: &Position) -> f64
+    {
+        ((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y)).sqrt()
+    }
+
     fn calculate_slot_distances(&mut self, slots: &[Slot<T>]) {
+
         slots.iter().enumerate().for_each(|(i1, v1)| {
             slots.iter().enumerate().for_each(|(i2, v2)| {
                 self.slot_distances.insert(
                     (i1, i2),
-                    (((v1.get_position().x - v2.get_position().x)
-                        * (v1.get_position().x - v2.get_position().x))
-                        + ((v1.get_position().y - v2.get_position().y)
-                            * (v1.get_position().y - v2.get_position().y)))
-                        .sqrt(),
+                    Dispatcher::<T>::distance_between_points(v1.get_position(), v2.get_position())
                 );
             })
         });
