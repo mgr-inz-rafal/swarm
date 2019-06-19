@@ -832,4 +832,31 @@ mod tests {
         assert_eq!(dispatcher.find_slot_that_contains(&slots, 'X'), Some(0));
         assert_eq!(dispatcher.find_slot_that_contains(&slots, 'Y'), None);
     }
+
+    #[test]
+    fn calculate_slot_distances() {
+        let mut dispatcher = Dispatcher::new();
+        let slots = vec![
+            Slot::new(
+                100.0,
+                100.0,
+                Some(Payload::new('A')),
+                None,
+                SlotKind::CLASSIC,
+            ),
+            Slot::new(100.0, 100.0, None, None, SlotKind::CLASSIC),
+            Slot::new(200.0, 200.0, None, None, SlotKind::CLASSIC),
+        ];
+
+        dispatcher.calculate_slot_distances(&slots);
+
+        assert_eq!(dispatcher.get_slot_distance(0, 1), 0.0);
+
+        assert!(relative_eq!(dispatcher.get_slot_distance(0, 1), 0.0));
+
+        assert!(relative_eq!(
+            dispatcher.get_slot_distance(1, 2),
+            100.0 * (2.0 as f64).sqrt()
+        ))
+    }
 }
