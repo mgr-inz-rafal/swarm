@@ -1,16 +1,16 @@
-extern crate swarm;
-use swarm::{Carrier, Payload, Slot, SlotKind, State};
+extern crate swarm_it;
+use swarm_it::{Carrier, Payload, Slot, SlotKind, State};
 
 #[test]
 fn conduct_to_targetting() {
-    let mut game = swarm::Swarm::new();
+    let mut game = swarm_it::Swarm::new();
 
     game.add_carrier(Carrier::new(0.0, 0.0));
     game.add_carrier(Carrier::new(0.0, 0.0));
     game.add_slot(Slot::new(
         100.0,
         100.0,
-        Some(swarm::Payload::new('X')),
+        Some(swarm_it::Payload::new('X')),
         None,
         SlotKind::CLASSIC,
     ));
@@ -18,7 +18,7 @@ fn conduct_to_targetting() {
         100.0,
         100.0,
         None,
-        Some(swarm::Payload::new('X')),
+        Some(swarm_it::Payload::new('X')),
         SlotKind::CLASSIC,
     ));
 
@@ -38,14 +38,14 @@ fn conduct_to_targetting() {
 
 #[test]
 fn idle_carriers_reporting() {
-    let mut game = swarm::Swarm::new();
+    let mut game = swarm_it::Swarm::new();
 
     game.add_carrier(Carrier::new(0.0, 0.0));
     game.add_carrier(Carrier::new(0.0, 0.0));
     game.add_slot(Slot::new(
         100.0,
         100.0,
-        Some(swarm::Payload::new('X')),
+        Some(swarm_it::Payload::new('X')),
         None,
         SlotKind::CLASSIC,
     ));
@@ -53,7 +53,7 @@ fn idle_carriers_reporting() {
         100.0,
         100.0,
         None,
-        Some(swarm::Payload::new('X')),
+        Some(swarm_it::Payload::new('X')),
         SlotKind::CLASSIC,
     ));
 
