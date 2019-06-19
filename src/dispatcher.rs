@@ -850,13 +850,14 @@ mod tests {
 
         dispatcher.calculate_slot_distances(&slots);
 
-        assert_eq!(dispatcher.get_slot_distance(0, 1), 0.0);
-
         assert!(relative_eq!(dispatcher.get_slot_distance(0, 1), 0.0));
-
         assert!(relative_eq!(
             dispatcher.get_slot_distance(1, 2),
             100.0 * (2.0 as f64).sqrt()
+        ));
+        assert!(relative_eq!(
+            dispatcher.get_slot_distance(2, 1),
+            dispatcher.get_slot_distance(1, 2)
         ))
     }
 }
