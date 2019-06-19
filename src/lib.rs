@@ -65,7 +65,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
             slots: Vec::new(),
             first_tick: true,
             idle_ticks: 0,
-            dispatcher: Dispatcher::new()
+            dispatcher: Dispatcher::new(),
         }
     }
 
