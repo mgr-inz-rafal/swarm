@@ -287,18 +287,22 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
         }
     }
 
-    fn find_temporary_slot(&self, slots: &[Slot<T>], target: Option<Payload<T>>) -> Option<usize> {
-        let t = target.expect("Trying to find slot for empty target");
-
+    fn find_any_temporary_slot(&self, slots: &[Slot<T>], target: Payload<T>) -> Option<usize> 
+    {
         if let Some((index, _)) = slots.iter().enumerate().find(|(index, _)| {
             slots[*index].current_payload == None
                 && !slots[*index].taken_care_of
-                && t.taken_from != Some(*index)
+                && target.taken_from != Some(*index)
         }) {
             Some(index)
         } else {
             None
         }
+    }
+
+    fn find_temporary_slot(&self, slots: &[Slot<T>], target: Option<Payload<T>>) -> Option<usize> {
+        let t = target.expect("Trying to find slot for empty target");
+        self.find_any_temporary_slot(slots, t)
     }
 }
 
