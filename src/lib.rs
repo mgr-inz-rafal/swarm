@@ -7,7 +7,6 @@ mod payload;
 mod position;
 mod slot;
 
-use std::collections::HashMap;
 use std::hash::Hash;
 
 pub use carrier::*;
@@ -39,6 +38,17 @@ fn _debug_dump_slots(slots: &[Slot<char>]) {
     }
 }
 
+fn _debug_dump_slot_distances<T: PartialEq + Eq + Hash + Copy>(
+    slots: &[Slot<T>],
+    dispatcher: &Dispatcher<T>,
+) {
+    slots.iter().enumerate().for_each(|(i1, _)| {
+        slots.iter().enumerate().for_each(|(i2, _)| {
+            println!("{}->{} = {}", i1, i2, dispatcher.get_slot_distance(i1, i2));
+        })
+    });
+}
+
 #[derive(Default)]
 pub struct Swarm<T: PartialEq + Eq + Hash + Copy> {
     carriers: Vec<Carrier<T>>,
@@ -55,9 +65,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
             slots: Vec::new(),
             first_tick: true,
             idle_ticks: 0,
-            dispatcher: Dispatcher {
-                cargo_balance: HashMap::new(),
-            },
+            dispatcher: Dispatcher::new(),
         }
     }
 
@@ -109,12 +117,17 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
         if self.first_tick {
             self.dispatcher.precalc(&slots);
             self.first_tick = false;
+            _debug_dump_slot_distances(&slots, &self.dispatcher);
         }
         self.dispatcher.conduct(&mut self.carriers, &mut slots);
         self.carriers.iter_mut().for_each(|x| x.tick(slots));
         self.job_finished()
     }
 
+    // TODO: Different kind of that may change. Provide additional
+    // parameter in order NOT to precalculate everything
+    // 1. Slot payload => recalculate cargo balance
+    // 2. Slots added/removed => recalculate slot distances
     pub fn slot_data_changed(&mut self) {
         self.dispatcher.precalc(&self.slots);
     }
