@@ -5,7 +5,6 @@ authors = ["mgr-inz-rafal <rchabowski@gmail.com>"]
 edition = "2018"
 description = "This library will allow you to carry objects around by using the automatically conducted swarm of carriers"
 license = "MIT"
-license-file = "https://raw.githubusercontent.com/mgr-inz-rafal/swarm/master/LICENSE"
 documentation = "https://github.com/mgr-inz-rafal/swarm"
 homepage = "https://github.com/mgr-inz-rafal/swarm"
 repository = "https://github.com/mgr-inz-rafal/swarm"
