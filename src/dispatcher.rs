@@ -5,13 +5,20 @@ use super::carrier::*;
 use super::payload::*;
 use super::slot::*;
 
-#[derive(Default)]  // TODO: Add new()
+#[derive(Default)]
 pub struct Dispatcher<T: PartialEq + Eq + Hash + Copy> {
     pub(crate) cargo_balance: HashMap<T, i32>,
     pub(crate) slot_distances: HashMap<(usize, usize), f64>,
 }
 
 impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
+    pub(crate) fn new() -> Self {
+        Dispatcher {
+            cargo_balance: HashMap::new(),
+            slot_distances: HashMap::new(),
+        }
+    }
+
     fn calculate_cargo_balance(&mut self, slots: &[Slot<T>]) {
         self.cargo_balance.clear();
 
@@ -26,8 +33,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
         self.cargo_balance.retain(|_, v| *v != 0);
     }
 
-    pub(crate) fn get_slot_distance(&self, s1: usize, s2: usize) -> f64
-    {
+    pub(crate) fn get_slot_distance(&self, s1: usize, s2: usize) -> f64 {
         *self.slot_distances.get(&(s1, s2)).unwrap()
     }
 
@@ -44,8 +50,6 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
                 );
             })
         });
-
-
     }
 
     pub(crate) fn precalc(&mut self, slots: &[Slot<T>]) {
@@ -303,9 +307,7 @@ mod tests {
 
     #[test]
     fn find_slot_for_target() {
-        let dispatcher = Dispatcher {
-            cargo_balance: HashMap::new(),
-        };
+        let dispatcher = Dispatcher::new();
         let slots = vec![
             Slot::new(
                 100.0,
@@ -331,9 +333,7 @@ mod tests {
 
     #[test]
     fn find_mismatched_slot1() {
-        let dispatcher = Dispatcher {
-            cargo_balance: HashMap::new(),
-        };
+        let dispatcher = Dispatcher::new();
         let slots = vec![
             Slot::new(
                 100.0,
@@ -357,9 +357,7 @@ mod tests {
 
     #[test]
     fn find_mismatched_slot2() {
-        let dispatcher = Dispatcher {
-            cargo_balance: HashMap::new(),
-        };
+        let dispatcher = Dispatcher::new();
         let slots = vec![
             Slot::new(
                 100.0,
@@ -385,9 +383,7 @@ mod tests {
 
     #[test]
     fn find_mismatched_slot3() {
-        let dispatcher = Dispatcher {
-            cargo_balance: HashMap::new(),
-        };
+        let dispatcher = Dispatcher::new();
         let slots = vec![
             Slot::new(
                 100.0,
@@ -410,9 +406,7 @@ mod tests {
 
     #[test]
     fn find_mismatched_slot_with_target1() {
-        let dispatcher = Dispatcher {
-            cargo_balance: HashMap::new(),
-        };
+        let dispatcher = Dispatcher::new();
         let slots = vec![
             Slot::new(
                 100.0,
@@ -438,9 +432,7 @@ mod tests {
 
     #[test]
     fn find_mismatched_slot_with_target2() {
-        let dispatcher = Dispatcher {
-            cargo_balance: HashMap::new(),
-        };
+        let dispatcher = Dispatcher::new();
         let slots = vec![
             Slot::new(
                 100.0,
@@ -466,9 +458,7 @@ mod tests {
 
     #[test]
     fn find_mismatched_slot_with_target3() {
-        let dispatcher = Dispatcher {
-            cargo_balance: HashMap::new(),
-        };
+        let dispatcher = Dispatcher::new();
         let slots = vec![
             Slot::new(
                 100.0,
@@ -494,9 +484,7 @@ mod tests {
 
     #[test]
     fn is_there_a_free_slot_for1() {
-        let dispatcher = Dispatcher {
-            cargo_balance: HashMap::new(),
-        };
+        let dispatcher = Dispatcher::new();
         let slots = vec![
             Slot::new(
                 100.0,
@@ -526,9 +514,7 @@ mod tests {
 
     #[test]
     fn is_there_a_free_slot_for2() {
-        let dispatcher = Dispatcher {
-            cargo_balance: HashMap::new(),
-        };
+        let dispatcher = Dispatcher::new();
         let slots = vec![
             Slot::new(
                 100.0,
@@ -557,9 +543,7 @@ mod tests {
 
     #[test]
     fn calculate_cargo_balance() {
-        let mut dispatcher = Dispatcher {
-            cargo_balance: HashMap::new(),
-        };
+        let mut dispatcher = Dispatcher::new();
         let slots = vec![
             Slot::new(
                 100.0,
@@ -616,9 +600,7 @@ mod tests {
 
     #[test]
     fn reduce_cargo_balance() {
-        let mut dispatcher = Dispatcher {
-            cargo_balance: HashMap::new(),
-        };
+        let mut dispatcher = Dispatcher::new();
         let slots = vec![
             Slot::new(
                 100.0,
@@ -677,9 +659,7 @@ mod tests {
 
     #[test]
     fn find_pit1() {
-        let dispatcher = Dispatcher {
-            cargo_balance: HashMap::new(),
-        };
+        let dispatcher = Dispatcher::new();
         let slots = vec![
             Slot::new(
                 100.0,
@@ -702,9 +682,7 @@ mod tests {
 
     #[test]
     fn find_pit2() {
-        let dispatcher = Dispatcher {
-            cargo_balance: HashMap::new(),
-        };
+        let dispatcher = Dispatcher::new();
         let slots = vec![
             Slot::new(
                 100.0,
@@ -721,9 +699,7 @@ mod tests {
 
     #[test]
     fn find_slot_with_payload_that_should_go_to_the_pit1() {
-        let mut dispatcher = Dispatcher {
-            cargo_balance: HashMap::new(),
-        };
+        let mut dispatcher = Dispatcher::new();
         let slots = vec![
             Slot::new(
                 100.0,
@@ -778,9 +754,7 @@ mod tests {
 
     #[test]
     fn find_slot_with_payload_that_should_go_to_the_pit2() {
-        let mut dispatcher = Dispatcher {
-            cargo_balance: HashMap::new(),
-        };
+        let mut dispatcher = Dispatcher::new();
         let slots = vec![
             Slot::new(
                 100.0,
@@ -828,9 +802,7 @@ mod tests {
 
     #[test]
     fn find_slot_that_contains() {
-        let dispatcher = Dispatcher {
-            cargo_balance: HashMap::new(),
-        };
+        let dispatcher = Dispatcher::new();
         let slots = vec![
             Slot::new(
                 100.0,

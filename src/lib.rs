@@ -7,7 +7,6 @@ mod payload;
 mod position;
 mod slot;
 
-use std::collections::HashMap;
 use std::hash::Hash;
 
 pub use carrier::*;
@@ -39,11 +38,15 @@ fn _debug_dump_slots(slots: &[Slot<char>]) {
     }
 }
 
-fn _debug_dump_slot_distances<T: PartialEq + Eq + Hash + Copy>(slots: &[Slot<T>], dispatcher: &Dispatcher<T>) {
-        slots.iter().enumerate().for_each(|(i1, _)| {
-            slots.iter().enumerate().for_each(|(i2, _)| {
-                println!("{}->{} = {}", i1, i2, dispatcher.get_slot_distance(i1, i2));
-            })});
+fn _debug_dump_slot_distances<T: PartialEq + Eq + Hash + Copy>(
+    slots: &[Slot<T>],
+    dispatcher: &Dispatcher<T>,
+) {
+    slots.iter().enumerate().for_each(|(i1, _)| {
+        slots.iter().enumerate().for_each(|(i2, _)| {
+            println!("{}->{} = {}", i1, i2, dispatcher.get_slot_distance(i1, i2));
+        })
+    });
 }
 
 #[derive(Default)]
@@ -62,10 +65,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
             slots: Vec::new(),
             first_tick: true,
             idle_ticks: 0,
-            dispatcher: Dispatcher {
-                cargo_balance: HashMap::new(),
-                slot_distances: HashMap::new()
-            },
+            dispatcher: Dispatcher::new()
         }
     }
 
