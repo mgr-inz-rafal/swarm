@@ -312,7 +312,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
 
     fn find_closest_temporary_slot(&self, slots: &[Slot<T>], target: Payload<T>) -> Option<usize> {
         let mut distances = Vec::new();
-        slots.iter().enumerate().for_each(|(i, s)| {
+        slots.iter().enumerate().for_each(|(i, _)| {
             if self.is_candidate_for_temporary_slot(slots, i, target) {
                 distances.push((i, self.get_slot_distance(i, target.taken_from.unwrap())));
             }
