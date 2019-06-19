@@ -287,12 +287,23 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
         }
     }
 
+    fn is_candidate_for_temporary_slot(
+        &self,
+        slots: &[Slot<T>],
+        index: usize,
+        target: Payload<T>,
+    ) -> bool {
+        slots[index].current_payload == None
+            && !slots[index].taken_care_of
+            && target.taken_from != Some(index)
+    }
+
     fn _find_any_temporary_slot(&self, slots: &[Slot<T>], target: Payload<T>) -> Option<usize> {
-        if let Some((index, _)) = slots.iter().enumerate().find(|(index, _)| {
-            slots[*index].current_payload == None
-                && !slots[*index].taken_care_of
-                && target.taken_from != Some(*index)
-        }) {
+        if let Some((index, _)) = slots
+            .iter()
+            .enumerate()
+            .find(|(index, _)| self.is_candidate_for_temporary_slot(slots, *index, target))
+        {
             Some(index)
         } else {
             None
@@ -302,14 +313,20 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
     fn find_closest_temporary_slot(&self, slots: &[Slot<T>], target: Payload<T>) -> Option<usize> {
         let mut distances = Vec::new();
         slots.iter().enumerate().for_each(|(i, s)| {
-            if s.current_payload == None && !s.taken_care_of && target.taken_from != Some(i) {
+            if self.is_candidate_for_temporary_slot(slots, i, target) {
                 distances.push((i, self.get_slot_distance(i, target.taken_from.unwrap())));
             }
         });
-        if distances.is_empty() { return None };
-        Some(distances
-            .iter()
-            .min_by(|a, b| (a.1).partial_cmp(&b.1).unwrap()).unwrap().0)
+        if distances.is_empty() {
+            return None;
+        };
+        Some(
+            distances
+                .iter()
+                .min_by(|a, b| (a.1).partial_cmp(&b.1).unwrap())
+                .unwrap()
+                .0,
+        )
     }
 
     fn find_temporary_slot(&self, slots: &[Slot<T>], target: Option<Payload<T>>) -> Option<usize> {
