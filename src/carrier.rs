@@ -1,5 +1,4 @@
 #![macro_use]
-
 extern crate rand;
 
 use super::payload::*;
@@ -24,7 +23,7 @@ const POSITION_EQUALITY_EPSILON: f64 = SPEED_FACTOR * 1.5;
 /// NOTARGET         | Has cargo that currently won't fit anywhere. Will be temporarily dropped in the closest slot
 /// DELIVERING       | Moving cargo to the target
 /// PUTTINGDOWN      | Putting down the cargo
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum State {
     IDLE,
     TARGETING(usize),
@@ -128,8 +127,12 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     ///
     /// # Example
     ///
-    /// ```skip
-    /// let position = carrier.get_position();
+    /// ```
+    /// use swarm_it::*;
+    /// let target_position = swarm_it::position::Position {x: 100.0, y: 200.0};
+    /// let carrier = swarm_it::Carrier::<char>::new(target_position.x, target_position.y);
+    /// let carrier_position = carrier.get_position();
+    /// assert!(approx::relative_eq!(carrier_position.x, target_position.x));
     /// ```
     pub fn get_position(&self) -> &Position {
         &self.pos
@@ -139,8 +142,10 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     ///
     /// # Example
     ///
-    /// ```skip
-    /// let position = carrier.get_angle();
+    /// ```
+    /// use swarm_it::*;
+    /// let carrier = swarm_it::Carrier::<char>::new(100.0, 100.0);
+    /// assert!(approx::relative_eq!(carrier.get_angle(), 0.0));
     /// ```
     pub fn get_angle(&self) -> f64 {
         self.angle
@@ -150,8 +155,10 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     ///
     /// # Example
     ///
-    /// ```skip
-    /// let position = carrier.get_state();
+    /// ```
+    /// use swarm_it::*;
+    /// let carrier = swarm_it::Carrier::<char>::new(100.0, 100.0);
+    /// assert_eq!(carrier.get_state(), swarm_it::State::IDLE);
     /// ```
     pub fn get_state(&self) -> State {
         self.state
