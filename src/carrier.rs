@@ -52,6 +52,8 @@ pub(crate) enum RotationDirection {
     COUNTERCLOCKWISE,
 }
 
+/// Represnets the `Carrier` object. Carrier is an entity that moves from slot to slot and
+/// transfers cargo in order to reach the desired layout.
 #[derive(Copy, Clone)]
 pub struct Carrier<T: PartialEq + Eq + Hash + Copy> {
     pos: Position,
@@ -72,7 +74,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     /// # Example
     ///
     /// ```
-    /// let c = Carrier::new(100.0, 100.0);
+    /// let carrier = swarm_it::Carrier::<char>::new(100.0, 100.0);
     /// ```
     pub fn new(x: f64, y: f64) -> Carrier<T> {
         Carrier {
@@ -94,7 +96,11 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     /// # Example
     ///
     /// ```
+    /// use swarm_it::*;
+    /// let carrier = swarm_it::Carrier::<char>::new(100.0, 100.0);
     /// let payload = carrier.get_payload();
+    /// assert_eq!(payload, None);
+    ///
     /// ```
     pub fn get_payload(&self) -> Option<Payload<T>> {
         self.payload
@@ -105,7 +111,10 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     /// # Example
     ///
     /// ```
+    /// use swarm_it::*;
+    /// let carrier = swarm_it::Carrier::<char>::new(100.0, 100.0);
     /// let target = carrier.get_target();
+    /// assert_eq!(target, None)
     /// ```
     pub fn get_target(&self) -> Option<usize> {
         match self.state {
@@ -119,7 +128,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```skip
     /// let position = carrier.get_position();
     /// ```
     pub fn get_position(&self) -> &Position {
@@ -130,7 +139,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```skip
     /// let position = carrier.get_angle();
     /// ```
     pub fn get_angle(&self) -> f64 {
@@ -141,7 +150,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```skip
     /// let position = carrier.get_state();
     /// ```
     pub fn get_state(&self) -> State {

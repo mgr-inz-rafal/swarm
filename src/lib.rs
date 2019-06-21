@@ -84,6 +84,8 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
     /// # Example
     ///
     /// ```
+    /// use swarm_it::*;
+    /// let mut game = Swarm::<char>::new();
     /// game.add_carrier(Carrier::new(100.0, 200.0));
     /// ```
     pub fn add_carrier(&mut self, carrier: Carrier<T>) {
@@ -95,7 +97,9 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
     /// # Example
     ///
     /// ```
-    /// game.add_slot(Slot::new(100.0, 100.0, None, Some('X'), swarm_it::SlotKind::CLASSIC));
+    /// use swarm_it::*;
+    /// let mut game = Swarm::<char>::new();
+    /// game.add_slot(Slot::new(100.0, 100.0, None, Some(Payload::new('X')), swarm_it::SlotKind::CLASSIC));
     /// ```
     pub fn add_slot(&mut self, slot: Slot<T>) {
         Swarm::<T>::add_object(&mut self.slots, slot);
@@ -126,6 +130,8 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
     /// # Example
     ///
     /// ```
+    /// use swarm_it::*;
+    /// let mut game = Swarm::<char>::new();
     /// if game.tick() { println!("Job finished, yay!"); };
     /// ```
     pub fn tick(&mut self) -> bool {
@@ -153,6 +159,8 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
     /// # Example
     ///
     /// ```
+    /// use swarm_it::*;
+    /// let mut game = Swarm::<char>::new();
     /// game.slot_data_changed();
     /// ```
     ///
