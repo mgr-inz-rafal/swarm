@@ -78,6 +78,15 @@ impl<T: PartialEq + Eq + Hash + Copy> Slot<T> {
         [self.current_payload, self.target_payload]
     }
 
+    pub fn set_target_payload(&mut self, p: Option<Payload<T>>) {
+        self.target_payload = p;
+    }
+
+    pub fn set_payloads(&mut self, p: Option<Payload<T>>) {
+        self.current_payload = p;
+        self.target_payload = p;
+    }
+
     /// Returns `true` if this slot is already addressed by any of the carriers.
     /// It is mainly used by the library internals, but is also exposed
     /// for the user, so it is possible to, for example, prepare different

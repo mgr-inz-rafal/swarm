@@ -10,7 +10,7 @@ mod slot;
 use std::hash::Hash;
 
 pub use carrier::*;
-pub use dispatcher::*;
+use dispatcher::*;
 pub use payload::*;
 pub use slot::*;
 
