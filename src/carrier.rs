@@ -133,6 +133,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     /// let carrier = swarm_it::Carrier::<char>::new(target_position.x, target_position.y);
     /// let carrier_position = carrier.get_position();
     /// assert!(approx::relative_eq!(carrier_position.x, target_position.x));
+    /// assert!(approx::relative_eq!(carrier_position.y, target_position.y));
     /// ```
     pub fn get_position(&self) -> &Position {
         &self.pos
