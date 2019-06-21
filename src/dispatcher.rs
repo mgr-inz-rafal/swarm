@@ -7,7 +7,7 @@ use super::position::*;
 use super::slot::*;
 
 #[derive(Default)]
-pub struct Dispatcher<T: PartialEq + Eq + Hash + Copy> {
+pub(crate) struct Dispatcher<T: PartialEq + Eq + Hash + Copy> {
     pub(crate) cargo_balance: HashMap<T, i32>,
     pub(crate) slot_distances: HashMap<(usize, usize), f64>,
 }
