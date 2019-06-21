@@ -12,6 +12,18 @@ const ANGLE_INCREMENT: f64 = 0.15;
 const SPEED_FACTOR: f64 = 6.0;
 const POSITION_EQUALITY_EPSILON: f64 = SPEED_FACTOR * 1.5;
 
+/// States that apply to Carriers
+///
+/// State            | Meaning
+/// -----------------|--------
+/// IDLE             | Not doing anything, except for looking for a new task
+/// TARGETING        | Rotating to target
+/// MOVING           | Moving to target
+/// PICKINGUP        | Picking up the cargo
+/// LOOKINGFORTARGET | Looking for target for the cargo
+/// NOTARGET         | Has cargo that currently won't fit anywhere. Will be temporarily dropped in the closest slot
+/// DELIVERING       | Moving cargo to the target
+/// PUTTINGDOWN      | Putting down the cargo
 #[derive(Copy, Clone)]
 pub enum State {
     IDLE,
@@ -55,6 +67,13 @@ pub struct Carrier<T: PartialEq + Eq + Hash + Copy> {
 }
 
 impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
+    /// Creates new Carrier at the position specified
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let c = Carrier::new(100.0, 100.0);
+    /// ```
     pub fn new(x: f64, y: f64) -> Carrier<T> {
         Carrier {
             pos: Position::new(x, y),
@@ -68,6 +87,65 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
             carrying_to_pit: false,
             going_to_spawner: (false, None),
         }
+    }
+
+    /// Returns current payload of the carrier
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let payload = carrier.get_payload();
+    /// ```
+    pub fn get_payload(&self) -> Option<Payload<T>> {
+        self.payload
+    }
+
+    /// Returns index of the slot that carriers is going to
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let target = carrier.get_target();
+    /// ```
+    pub fn get_target(&self) -> Option<usize> {
+        match self.state {
+            State::TARGETING(target_index) => Some(target_index),
+            State::MOVING(target_index) => Some(target_index),
+            _ => None,
+        }
+    }
+
+    /// Returns current carrier position
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let position = carrier.get_position();
+    /// ```
+    pub fn get_position(&self) -> &Position {
+        &self.pos
+    }
+
+    /// Returns current carrier angle
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let position = carrier.get_angle();
+    /// ```
+    pub fn get_angle(&self) -> f64 {
+        self.angle
+    }
+
+    /// Returns current carrier state
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let position = carrier.get_state();
+    /// ```
+    pub fn get_state(&self) -> State {
+        self.state
     }
 
     fn pick_random_idle_rotation() -> Option<RotationDirection> {
@@ -97,18 +175,6 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
         self.temporary_target = is_temporary;
         self.carrying_to_pit = to_pit;
         self.going_to_spawner = to_spawner;
-    }
-
-    pub fn get_payload(&self) -> Option<Payload<T>> {
-        self.payload
-    }
-
-    pub fn get_target(&self) -> Option<usize> {
-        match self.state {
-            State::TARGETING(target_index) => Some(target_index),
-            State::MOVING(target_index) => Some(target_index),
-            _ => None,
-        }
     }
 
     fn calculate_angle_to_point(&self, target: (f64, f64)) -> f64 {
@@ -186,19 +252,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
         self.is_close_enough(target)
     }
 
-    pub fn get_position(&self) -> &Position {
-        &self.pos
-    }
-
-    pub fn get_angle(&self) -> f64 {
-        self.angle
-    }
-
-    pub fn get_state(&self) -> State {
-        self.state
-    }
-
-    pub fn tick(&mut self, slots: &mut Vec<Slot<T>>) {
+    pub(crate) fn tick(&mut self, slots: &mut Vec<Slot<T>>) {
         match self.state {
             State::TARGETING(target) => {
                 let target_pos = slots[target].get_position();
