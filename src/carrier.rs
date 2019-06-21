@@ -95,7 +95,6 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     /// # Example
     ///
     /// ```
-    /// use swarm_it::*;
     /// let carrier = swarm_it::Carrier::<char>::new(100.0, 100.0);
     /// let payload = carrier.get_payload();
     /// assert_eq!(payload, None);
@@ -110,7 +109,6 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     /// # Example
     ///
     /// ```
-    /// use swarm_it::*;
     /// let carrier = swarm_it::Carrier::<char>::new(100.0, 100.0);
     /// let target = carrier.get_target();
     /// assert_eq!(target, None)
@@ -128,7 +126,6 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     /// # Example
     ///
     /// ```
-    /// use swarm_it::*;
     /// let target_position = swarm_it::position::Position {x: 100.0, y: 200.0};
     /// let carrier = swarm_it::Carrier::<char>::new(target_position.x, target_position.y);
     /// let carrier_position = carrier.get_position();
@@ -144,7 +141,6 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     /// # Example
     ///
     /// ```
-    /// use swarm_it::*;
     /// let carrier = swarm_it::Carrier::<char>::new(100.0, 100.0);
     /// assert!(approx::relative_eq!(carrier.get_angle(), 0.0));
     /// ```
@@ -157,7 +153,6 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     /// # Example
     ///
     /// ```
-    /// use swarm_it::*;
     /// let carrier = swarm_it::Carrier::<char>::new(100.0, 100.0);
     /// assert_eq!(carrier.get_state(), swarm_it::State::IDLE);
     /// ```
