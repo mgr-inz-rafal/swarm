@@ -17,7 +17,7 @@ const POSITION_EQUALITY_EPSILON: f64 = SPEED_FACTOR * 1.5;
 /// State            | Meaning
 /// -----------------|--------
 /// IDLE             | Not doing anything, except for looking for a new task
-/// TARGETING        | Rotating to target
+/// TARGETING        | Rotating to face the current target
 /// MOVING           | Moving to target
 /// PICKINGUP        | Picking up the cargo
 /// LOOKINGFORTARGET | Looking for target for the cargo
