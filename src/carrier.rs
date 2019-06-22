@@ -1,5 +1,4 @@
 #![macro_use]
-
 extern crate rand;
 
 use super::payload::*;
@@ -12,7 +11,19 @@ const ANGLE_INCREMENT: f64 = 0.15;
 const SPEED_FACTOR: f64 = 6.0;
 const POSITION_EQUALITY_EPSILON: f64 = SPEED_FACTOR * 1.5;
 
-#[derive(Copy, Clone)]
+/// States that apply to Carriers
+///
+/// State            | Meaning
+/// -----------------|--------
+/// IDLE             | Not doing anything, except for looking for a new task
+/// TARGETING        | Rotating to face the current target
+/// MOVING           | Moving to target
+/// PICKINGUP        | Picking up the paylaod
+/// LOOKINGFORTARGET | Looking for target for the payload
+/// NOTARGET         | Has payload that currently won't fit anywhere. Will be temporarily dropped in the closest slot
+/// DELIVERING       | Moving payload to the target
+/// PUTTINGDOWN      | Putting down the payload
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum State {
     IDLE,
     TARGETING(usize),
@@ -40,6 +51,8 @@ pub(crate) enum RotationDirection {
     COUNTERCLOCKWISE,
 }
 
+/// Represnets the `Carrier` object. Carrier is an entity that moves from slot to slot and
+/// transfers payload in order to reach the desired layout.
 #[derive(Copy, Clone)]
 pub struct Carrier<T: PartialEq + Eq + Hash + Copy> {
     pos: Position,
@@ -55,6 +68,13 @@ pub struct Carrier<T: PartialEq + Eq + Hash + Copy> {
 }
 
 impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
+    /// Creates new Carrier at the position specified
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let carrier = swarm_it::Carrier::<char>::new(100.0, 100.0);
+    /// ```
     pub fn new(x: f64, y: f64) -> Carrier<T> {
         Carrier {
             pos: Position::new(x, y),
@@ -68,6 +88,77 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
             carrying_to_pit: false,
             going_to_spawner: (false, None),
         }
+    }
+
+    /// Returns current payload of the carrier
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let carrier = swarm_it::Carrier::<char>::new(100.0, 100.0);
+    /// let payload = carrier.get_payload();
+    /// assert_eq!(payload, None);
+    ///
+    /// ```
+    pub fn get_payload(&self) -> Option<Payload<T>> {
+        self.payload
+    }
+
+    /// Returns index of the slot that carriers is going to
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let carrier = swarm_it::Carrier::<char>::new(100.0, 100.0);
+    /// let target = carrier.get_target();
+    /// assert_eq!(target, None)
+    /// ```
+    pub fn get_target(&self) -> Option<usize> {
+        match self.state {
+            State::TARGETING(target_index) => Some(target_index),
+            State::MOVING(target_index) => Some(target_index),
+            _ => None,
+        }
+    }
+
+    /// Returns current carrier position
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let x = 100.0;
+    /// let y = 200.0;
+    /// let carrier = swarm_it::Carrier::<char>::new(x, y);
+    /// let position = carrier.get_position();
+    /// assert!(approx::relative_eq!(position.x, x));
+    /// assert!(approx::relative_eq!(position.y, y));
+    /// ```
+    pub fn get_position(&self) -> &Position {
+        &self.pos
+    }
+
+    /// Returns current carrier angle
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let carrier = swarm_it::Carrier::<char>::new(100.0, 100.0);
+    /// assert!(approx::relative_eq!(carrier.get_angle(), 0.0));
+    /// ```
+    pub fn get_angle(&self) -> f64 {
+        self.angle
+    }
+
+    /// Returns current carrier state
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let carrier = swarm_it::Carrier::<char>::new(100.0, 100.0);
+    /// assert_eq!(carrier.get_state(), swarm_it::State::IDLE);
+    /// ```
+    pub fn get_state(&self) -> State {
+        self.state
     }
 
     fn pick_random_idle_rotation() -> Option<RotationDirection> {
@@ -97,18 +188,6 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
         self.temporary_target = is_temporary;
         self.carrying_to_pit = to_pit;
         self.going_to_spawner = to_spawner;
-    }
-
-    pub fn get_payload(&self) -> Option<Payload<T>> {
-        self.payload
-    }
-
-    pub fn get_target(&self) -> Option<usize> {
-        match self.state {
-            State::TARGETING(target_index) => Some(target_index),
-            State::MOVING(target_index) => Some(target_index),
-            _ => None,
-        }
     }
 
     fn calculate_angle_to_point(&self, target: (f64, f64)) -> f64 {
@@ -186,19 +265,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
         self.is_close_enough(target)
     }
 
-    pub fn get_position(&self) -> &Position {
-        &self.pos
-    }
-
-    pub fn get_angle(&self) -> f64 {
-        self.angle
-    }
-
-    pub fn get_state(&self) -> State {
-        self.state
-    }
-
-    pub fn tick(&mut self, slots: &mut Vec<Slot<T>>) {
+    pub(crate) fn tick(&mut self, slots: &mut Vec<Slot<T>>) {
         match self.state {
             State::TARGETING(target) => {
                 let target_pos = slots[target].get_position();
