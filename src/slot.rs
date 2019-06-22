@@ -96,9 +96,9 @@ impl<T: PartialEq + Eq + Hash + Copy> Slot<T> {
     }
 
     /// Sets target payload
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// let mut empty_slot = swarm_it::Slot::<char>::new(100.0, 100.0, None, None, swarm_it::SlotKind::CLASSIC);
     /// empty_slot.set_target_payload(Some(swarm_it::Payload::new('X')));
@@ -111,9 +111,9 @@ impl<T: PartialEq + Eq + Hash + Copy> Slot<T> {
     }
 
     /// Sets both current and target payloads
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// let mut empty_slot = swarm_it::Slot::<char>::new(100.0, 100.0, None, None, swarm_it::SlotKind::CLASSIC);
     /// empty_slot.set_payloads(Some(swarm_it::Payload::new('X')));
@@ -130,9 +130,9 @@ impl<T: PartialEq + Eq + Hash + Copy> Slot<T> {
     /// It is mainly used by the library internals, but is also exposed
     /// for the user, so it is possible to, for example, prepare different
     /// visualization for these kind of slots.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// let slot = swarm_it::Slot::<char>::new(100.0, 100.0, None, None, swarm_it::SlotKind::CLASSIC);
     /// assert_eq!(slot.is_taken_care_of(), false);
@@ -142,9 +142,9 @@ impl<T: PartialEq + Eq + Hash + Copy> Slot<T> {
     }
 
     /// Returns `true` is slot is a pit
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// let slot_classic = swarm_it::Slot::<char>::new(100.0, 100.0, None, None, swarm_it::SlotKind::CLASSIC);
     /// let slot_pit = swarm_it::Slot::<char>::new(100.0, 100.0, None, None, swarm_it::SlotKind::PIT);
@@ -158,9 +158,9 @@ impl<T: PartialEq + Eq + Hash + Copy> Slot<T> {
     }
 
     /// Returns `true` is slot is a spawner
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// let slot_classic = swarm_it::Slot::<char>::new(100.0, 100.0, None, None, swarm_it::SlotKind::CLASSIC);
     /// let slot_pit = swarm_it::Slot::<char>::new(100.0, 100.0, None, None, swarm_it::SlotKind::PIT);
