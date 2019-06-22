@@ -49,7 +49,7 @@ fn _debug_dump_slot_distances<T: PartialEq + Eq + Hash + Copy>(
     });
 }
 
-// Main struct that allow you to talk to the library
+/// Main struct that allow you to talk to the library
 #[derive(Default)]
 pub struct Swarm<T: PartialEq + Eq + Hash + Copy> {
     carriers: Vec<Carrier<T>>,

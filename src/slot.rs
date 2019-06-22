@@ -76,8 +76,11 @@ impl<T: PartialEq + Eq + Hash + Copy> Slot<T> {
     }
 
     /// Returns current carrier payloads.
-    /// arr[0] - current payload
-    /// arr[1] - target payload
+    /// 
+    /// Index | Content
+    /// ------|---------------
+    /// 0     | current payload
+    /// 1     | target payload
     ///
     /// # Example
     ///

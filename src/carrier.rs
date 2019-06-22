@@ -18,11 +18,11 @@ const POSITION_EQUALITY_EPSILON: f64 = SPEED_FACTOR * 1.5;
 /// IDLE             | Not doing anything, except for looking for a new task
 /// TARGETING        | Rotating to face the current target
 /// MOVING           | Moving to target
-/// PICKINGUP        | Picking up the cargo
-/// LOOKINGFORTARGET | Looking for target for the cargo
-/// NOTARGET         | Has cargo that currently won't fit anywhere. Will be temporarily dropped in the closest slot
-/// DELIVERING       | Moving cargo to the target
-/// PUTTINGDOWN      | Putting down the cargo
+/// PICKINGUP        | Picking up the paylaod
+/// LOOKINGFORTARGET | Looking for target for the payload
+/// NOTARGET         | Has payload that currently won't fit anywhere. Will be temporarily dropped in the closest slot
+/// DELIVERING       | Moving payload to the target
+/// PUTTINGDOWN      | Putting down the payload
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum State {
     IDLE,
@@ -52,7 +52,7 @@ pub(crate) enum RotationDirection {
 }
 
 /// Represnets the `Carrier` object. Carrier is an entity that moves from slot to slot and
-/// transfers cargo in order to reach the desired layout.
+/// transfers payload in order to reach the desired layout.
 #[derive(Copy, Clone)]
 pub struct Carrier<T: PartialEq + Eq + Hash + Copy> {
     pos: Position,
