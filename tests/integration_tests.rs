@@ -73,6 +73,9 @@ fn issue19_try_to_crash_lots_of_carriers() {
 
     fn increase_payload(p: &mut u32) {
         *p += 1;
+        if *p > MAX_PAYLOAD {
+            *p = 0
+        };
     };
 
     let mut game = swarm_it::Swarm::new();
