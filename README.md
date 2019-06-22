@@ -5,3 +5,7 @@
 # Documentation
 
 https://mgr-inz-rafal.github.io/swarm_it/
+
+# Demo
+
+[![](http://img.youtube.com/vi/vMaQWnlOqE0/0.jpg)](http://www.youtube.com/watch?v=vMaQWnlOqE0 "")
