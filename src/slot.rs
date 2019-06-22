@@ -59,20 +59,17 @@ impl<T: PartialEq + Eq + Hash + Copy> Slot<T> {
         }
     }
 
-    /// Returns current carrier position
+    /// Returns current slot position
     ///
     /// # Example
     ///
     /// ```
-    /// let target_position = swarm_it::position::Position {x: 100.0, y: 200.0};
-    /// let slot = swarm_it::Slot::<char>::new(
-    ///     target_position.x,
-    ///     target_position.y,
-    ///     None, None,
-    ///     swarm_it::SlotKind::CLASSIC);
-    /// let slot_position = slot.get_position();
-    /// assert!(approx::relative_eq!(slot_position.x, target_position.x));
-    /// assert!(approx::relative_eq!(slot_position.y, target_position.y));
+    /// let x = 100.0;
+    /// let y = 200.0;
+    /// let slot = swarm_it::Slot::<char>::new(x, y, None, None, swarm_it::SlotKind::CLASSIC);
+    /// let position = slot.get_position();
+    /// assert!(approx::relative_eq!(position.x, x));
+    /// assert!(approx::relative_eq!(position.y, y));
     /// ```
     pub fn get_position(&self) -> &Position {
         &self.pos

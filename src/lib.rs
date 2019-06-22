@@ -4,7 +4,7 @@ mod macros;
 mod carrier;
 mod dispatcher;
 mod payload;
-pub mod position;
+mod position;
 mod slot;
 
 use std::hash::Hash;
