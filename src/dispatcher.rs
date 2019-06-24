@@ -294,6 +294,8 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
         target: Payload<T>,
     ) -> bool {
         slots[index].current_payload == None
+            && !slots[index].is_pit()
+            && !slots[index].is_spawner()
             && !slots[index].taken_care_of
             && target.taken_from != Some(index)
     }

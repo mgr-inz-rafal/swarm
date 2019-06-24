@@ -67,7 +67,6 @@ fn idle_carriers_reporting() {
 }
 
 #[test]
-#[should_panic]
 fn issue19_try_to_crash_lots_of_carriers() {
     // https://github.com/mgr-inz-rafal/swarm/issues/19
 
@@ -121,8 +120,8 @@ fn issue19_try_to_crash_lots_of_carriers() {
     // Get ready
     game.slot_data_changed();
 
-    // Execute 100k tics, expect no panic
-    for _ in 0..100_000 {
+    // Execute 1000 tics, expect no panic
+    for _ in 0..1000 {
         game.tick();
     }
 }
