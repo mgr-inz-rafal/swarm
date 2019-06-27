@@ -206,7 +206,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
     fn find_slot_with_payload_that_should_go_to_the_pit(&self, slots: &[Slot<T>]) -> Option<usize> {
         let excessive = self.cargo_balance.iter().find(|&(_, &v)| v > 0);
         if let Some(cargo) = excessive {
-            if let Some(slot_index) = self.find_slot_that_contains(slots, *cargo.0) {
+            if let Some(slot_index) = self.find_mismatched_slot_that_contains(slots, *cargo.0) {
                 if !slots[slot_index].taken_care_of {
                     return Some(slot_index);
                 }
@@ -215,12 +215,14 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
         None
     }
 
-    fn find_slot_that_contains(&self, slots: &[Slot<T>], cargo: T) -> Option<usize> {
+    fn find_mismatched_slot_that_contains(&self, slots: &[Slot<T>], cargo: T) -> Option<usize> {
         for (i, v) in slots.iter().enumerate() {
-            let [current, _] = v.get_payloads();
-            if let Some(contained_cargo) = current {
-                if contained_cargo.cargo == cargo {
-                    return Some(i);
+            let [current, target] = v.get_payloads();
+            if current != target {
+                if let Some(contained_cargo) = current {
+                    if contained_cargo.cargo == cargo {
+                        return Some(i);
+                    }
                 }
             }
         }
@@ -782,9 +784,13 @@ mod tests {
         ];
 
         dispatcher.calculate_cargo_balance(&slots);
-        assert_eq!(
+        assert_ne!(
             dispatcher.find_slot_with_payload_that_should_go_to_the_pit(&slots),
             Some(2)
+        );
+        assert_eq!(
+            dispatcher.find_slot_with_payload_that_should_go_to_the_pit(&slots),
+            Some(3)
         );
     }
 
@@ -863,9 +869,18 @@ mod tests {
             ),
         ];
 
-        assert_eq!(dispatcher.find_slot_that_contains(&slots, 'A'), Some(2));
-        assert_eq!(dispatcher.find_slot_that_contains(&slots, 'X'), Some(0));
-        assert_eq!(dispatcher.find_slot_that_contains(&slots, 'Y'), None);
+        assert_eq!(
+            dispatcher.find_mismatched_slot_that_contains(&slots, 'A'),
+            Some(2)
+        );
+        assert_eq!(
+            dispatcher.find_mismatched_slot_that_contains(&slots, 'X'),
+            Some(0)
+        );
+        assert_eq!(
+            dispatcher.find_mismatched_slot_that_contains(&slots, 'Y'),
+            None
+        );
     }
 
     #[test]
