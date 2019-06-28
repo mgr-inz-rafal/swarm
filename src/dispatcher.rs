@@ -217,11 +217,13 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
 
     fn find_mismatched_slot_that_contains(&self, slots: &[Slot<T>], cargo: T) -> Option<usize> {
         for (i, v) in slots.iter().enumerate() {
-            let [current, target] = v.get_payloads();
-            if current != target {
-                if let Some(contained_cargo) = current {
-                    if contained_cargo.cargo == cargo {
-                        return Some(i);
+            if !v.taken_care_of {
+                let [current, target] = v.get_payloads();
+                if current != target {
+                    if let Some(contained_cargo) = current {
+                        if contained_cargo.cargo == cargo {
+                            return Some(i);
+                        }
                     }
                 }
             }

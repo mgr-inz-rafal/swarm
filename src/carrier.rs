@@ -121,6 +121,21 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
         }
     }
 
+    /// Returns index of the slot that is reserverd as a
+    /// target for the cargo that the carrier is going to pick-up
+    /// or is currently transferring.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let carrier = swarm_it::Carrier::<char>::new(100.0, 100.0);
+    /// let target = carrier.get_reserved_target();
+    /// assert_eq!(target, None)
+    /// ```
+    pub fn get_reserved_target(&self) -> Option<usize> {
+        self.reserved_target
+    }
+
     /// Returns current carrier position
     ///
     /// # Example

@@ -67,6 +67,36 @@ fn idle_carriers_reporting() {
 }
 
 #[test]
+fn parallel_transfer_to_pit() {
+    let mut game = swarm_it::Swarm::new();
+
+    game.add_carrier(Carrier::new(50.0, 50.0));
+    game.add_carrier(Carrier::new(50.0, 50.0));
+    game.add_slot(Slot::new(
+        200.0,
+        200.0,
+        Some(Payload::new('A')),
+        None,
+        SlotKind::CLASSIC,
+    ));
+    game.add_slot(Slot::new(
+        300.0,
+        250.0,
+        Some(Payload::new('A')),
+        None,
+        SlotKind::CLASSIC,
+    ));
+    game.add_slot(make_slot_pit!(0.0, 0.0));
+
+    game.tick();
+
+    // Both carriers should target the pit
+    let carriers = game.get_carriers();
+    assert_eq!(carriers[0].get_reserved_target().unwrap(), 2);
+    assert_eq!(carriers[1].get_reserved_target().unwrap(), 2);
+}
+
+#[test]
 fn issue19_try_to_crash_lots_of_carriers() {
     // https://github.com/mgr-inz-rafal/swarm/issues/19
 
