@@ -34,8 +34,17 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
         self.cargo_balance.retain(|_, v| *v != 0);
     }
 
-    pub(crate) fn get_slot_distance(&self, s1: usize, s2: usize) -> f64 {
+    pub(crate) fn get_distance_slot_slot(&self, s1: usize, s2: usize) -> f64 {
         *self.slot_distances.get(&(s1, s2)).unwrap()
+    }
+
+    pub(crate) fn get_distance_slot_position(
+        &self,
+        slots: &[Slot<T>],
+        s: usize,
+        pos: &Position,
+    ) -> f64 {
+        Dispatcher::<T>::distance_between_points(slots[s].get_position(), pos)
     }
 
     fn distance_between_points(p1: &Position, p2: &Position) -> f64 {
@@ -79,7 +88,9 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
                     if let Some(slot_index) =
                         self.find_slot_with_payload_that_should_go_to_the_pit(slots)
                     {
-                        if let Some(pit_index) = self.find_pit(slots) {
+                        if let Some(pit_index) =
+                            self.find_closest_pit(slots, slots[slot_index].get_position())
+                        {
                             x.target_slot(
                                 slot_index,
                                 &mut slots[slot_index],
@@ -184,13 +195,23 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
         self.cargo_balance.retain(|_, v| *v != 0);
     }
 
-    fn find_pit(&self, slots: &[Slot<T>]) -> Option<usize> {
-        for (i, v) in slots.iter().enumerate() {
+    fn find_closest_pit(&self, slots: &[Slot<T>], pos: &Position) -> Option<usize> {
+        let mut distances = Vec::new();
+        slots.iter().enumerate().for_each(|(i, v)| {
             if v.is_pit() {
-                return Some(i);
+                distances.push((i, self.get_distance_slot_position(slots, i, pos)));
             }
-        }
-        None
+        });
+        if distances.is_empty() {
+            return None;
+        };
+        Some(
+            distances
+                .iter()
+                .min_by(|a, b| (a.1).partial_cmp(&b.1).unwrap())
+                .unwrap()
+                .0,
+        )
     }
 
     // TODO: Merge with find_pit
@@ -320,7 +341,10 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
         let mut distances = Vec::new();
         slots.iter().enumerate().for_each(|(i, _)| {
             if self.is_candidate_for_temporary_slot(slots, i, target) {
-                distances.push((i, self.get_slot_distance(i, target.taken_from.unwrap())));
+                distances.push((
+                    i,
+                    self.get_distance_slot_slot(i, target.taken_from.unwrap()),
+                ));
             }
         });
         if distances.is_empty() {
@@ -698,7 +722,7 @@ mod tests {
     }
 
     #[test]
-    fn find_pit1() {
+    fn find_closest_pit1() {
         let dispatcher = Dispatcher::new();
         let slots = vec![
             Slot::new(
@@ -717,11 +741,14 @@ mod tests {
             ),
         ];
 
-        assert_eq!(dispatcher.find_pit(&slots), None);
+        assert_eq!(
+            dispatcher.find_closest_pit(&slots, &Position::new(10.0, 10.0)),
+            None
+        );
     }
 
     #[test]
-    fn find_pit2() {
+    fn find_closest_pit2() {
         let dispatcher = Dispatcher::new();
         let slots = vec![
             Slot::new(
@@ -731,10 +758,34 @@ mod tests {
                 Some(Payload::new('B')),
                 SlotKind::CLASSIC,
             ),
-            make_slot_pit!(100.0, 100.0),
+            make_slot_pit!(1000.0, 1000.0),
         ];
 
-        assert_eq!(dispatcher.find_pit(&slots), Some(1));
+        assert_eq!(
+            dispatcher.find_closest_pit(&slots, &Position::new(10.0, 10.0)),
+            Some(1)
+        );
+    }
+
+    #[test]
+    fn find_closest_pit3() {
+        let dispatcher = Dispatcher::new();
+        let slots = vec![
+            Slot::new(
+                100.0,
+                100.0,
+                Some(Payload::new('A')),
+                Some(Payload::new('B')),
+                SlotKind::CLASSIC,
+            ),
+            make_slot_pit!(1000.0, 1000.0),
+            make_slot_pit!(0.0, 0.0),
+        ];
+
+        assert_eq!(
+            dispatcher.find_closest_pit(&slots, &Position::new(10.0, 10.0)),
+            Some(2)
+        );
     }
 
     #[test]
@@ -902,14 +953,14 @@ mod tests {
 
         dispatcher.calculate_slot_distances(&slots);
 
-        assert!(relative_eq!(dispatcher.get_slot_distance(0, 1), 0.0));
+        assert!(relative_eq!(dispatcher.get_distance_slot_slot(0, 1), 0.0));
         assert!(relative_eq!(
-            dispatcher.get_slot_distance(1, 2),
+            dispatcher.get_distance_slot_slot(1, 2),
             100.0 * (2.0 as f64).sqrt()
         ));
         assert!(relative_eq!(
-            dispatcher.get_slot_distance(2, 1),
-            dispatcher.get_slot_distance(1, 2)
+            dispatcher.get_distance_slot_slot(2, 1),
+            dispatcher.get_distance_slot_slot(1, 2)
         ))
     }
 

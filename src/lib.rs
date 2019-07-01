@@ -44,7 +44,12 @@ fn _debug_dump_slot_distances<T: PartialEq + Eq + Hash + Copy>(
 ) {
     slots.iter().enumerate().for_each(|(i1, _)| {
         slots.iter().enumerate().for_each(|(i2, _)| {
-            println!("{}->{} = {}", i1, i2, dispatcher.get_slot_distance(i1, i2));
+            println!(
+                "{}->{} = {}",
+                i1,
+                i2,
+                dispatcher.get_distance_slot_slot(i1, i2)
+            );
         })
     });
 }
