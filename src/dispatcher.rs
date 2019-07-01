@@ -69,16 +69,22 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
 
     pub(crate) fn conduct(&mut self, carriers: &mut Vec<Carrier<T>>, slots: &mut Vec<Slot<T>>) {
         let mut _debug_carrier_indexer = 0;
-        carriers.iter_mut().for_each(|x| {
-            match x.state {
+        carriers.iter_mut().for_each(|carrier| {
+            match carrier.state {
                 State::MOVING(target) => {
-                    if let Some(payload) = x.payload {
-                        if x.temporary_target {
+                    if let Some(payload) = carrier.payload {
+                        if carrier.temporary_target {
                             let mut ii: usize = 0;
                             let is_another_slot =
                                 self.is_there_a_free_slot_for(payload, slots, &mut ii);
                             if is_another_slot && ii != target {
-                                x.target_slot(ii, &mut slots[ii], false, false, (false, None));
+                                carrier.target_slot(
+                                    ii,
+                                    &mut slots[ii],
+                                    false,
+                                    false,
+                                    (false, None),
+                                );
                                 slots[target].taken_care_of = false;
                             }
                         }
@@ -88,17 +94,19 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
                     if let Some(slot_index) =
                         self.find_slot_with_payload_that_should_go_to_the_pit(slots)
                     {
-                        if let Some(pit_index) =
-                            self.find_closest_pit(slots, slots[slot_index].get_position())
-                        {
-                            x.target_slot(
+                        if let Some(pit_index) = self.find_closest_object(
+                            slots,
+                            slots[slot_index].get_position(),
+                            |slot| slot.is_pit(),
+                        ) {
+                            carrier.target_slot(
                                 slot_index,
                                 &mut slots[slot_index],
                                 false,
                                 true,
                                 (false, None),
                             );
-                            x.reserved_target = Some(pit_index);
+                            carrier.reserved_target = Some(pit_index);
                             self.reduce_cargo_balance(
                                 slots[slot_index].get_payloads()[0].unwrap().cargo,
                             );
@@ -106,7 +114,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
                     } else if let (Some(slot_index), possible_target) =
                         self.find_slot_with_mismatched_payload_and_free_target(slots)
                     {
-                        x.target_slot(
+                        carrier.target_slot(
                             slot_index,
                             &mut slots[slot_index],
                             false,
@@ -114,9 +122,9 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
                             (false, None),
                         );
                         slots[possible_target].taken_care_of = true;
-                        x.reserved_target = Some(possible_target);
+                        carrier.reserved_target = Some(possible_target);
                     } else if let Some(slot_index) = self.find_slot_with_mismatched_payload(slots) {
-                        x.target_slot(
+                        carrier.target_slot(
                             slot_index,
                             &mut slots[slot_index],
                             false,
@@ -124,8 +132,12 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
                             (false, None),
                         );
                     } else if let Some(cargo) = self.get_cargo_to_spawn() {
-                        if let Some(slot_index) = self.find_spawner(&slots) {
-                            x.target_slot(
+                        if let Some(slot_index) =
+                            self.find_closest_object(slots, carrier.get_position(), |slot| {
+                                slot.is_spawner()
+                            })
+                        {
+                            carrier.target_slot(
                                 slot_index,
                                 &mut slots[slot_index],
                                 false,
@@ -135,30 +147,30 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
                         }
                     }
                 }
-                State::LOOKINGFORTARGET => match x.reserved_target {
-                    Some(slot_index) => x.target_slot(
+                State::LOOKINGFORTARGET => match carrier.reserved_target {
+                    Some(slot_index) => carrier.target_slot(
                         slot_index,
                         &mut slots[slot_index],
-                        x.temporary_target,
-                        x.carrying_to_pit,
-                        x.going_to_spawner,
+                        carrier.temporary_target,
+                        carrier.carrying_to_pit,
+                        carrier.going_to_spawner,
                     ),
-                    None => match self.find_slot_for_target(slots, x.payload) {
-                        Some(slot_index) => x.target_slot(
+                    None => match self.find_slot_for_target(slots, carrier.payload) {
+                        Some(slot_index) => carrier.target_slot(
                             slot_index,
                             &mut slots[slot_index],
-                            x.temporary_target,
-                            x.carrying_to_pit,
-                            x.going_to_spawner,
+                            carrier.temporary_target,
+                            carrier.carrying_to_pit,
+                            carrier.going_to_spawner,
                         ),
                         None => {
-                            x.state = State::NOTARGET;
+                            carrier.state = State::NOTARGET;
                         }
                     },
                 },
-                State::NOTARGET => match self.find_temporary_slot(slots, x.payload) {
+                State::NOTARGET => match self.find_temporary_slot(slots, carrier.payload) {
                     Some(slot_index) => {
-                        x.target_slot(
+                        carrier.target_slot(
                             slot_index,
                             &mut slots[slot_index],
                             true,
@@ -167,7 +179,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
                         );
                     }
                     None => {
-                        x.state = State::LOOKINGFORTARGET;
+                        carrier.state = State::LOOKINGFORTARGET;
                     }
                 },
                 _ => {}
@@ -195,10 +207,15 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
         self.cargo_balance.retain(|_, v| *v != 0);
     }
 
-    fn find_closest_pit(&self, slots: &[Slot<T>], pos: &Position) -> Option<usize> {
+    fn find_closest_object(
+        &self,
+        slots: &[Slot<T>],
+        pos: &Position,
+        classifier: fn(&Slot<T>) -> bool,
+    ) -> Option<usize> {
         let mut distances = Vec::new();
         slots.iter().enumerate().for_each(|(i, v)| {
-            if v.is_pit() {
+            if classifier(&v) {
                 distances.push((i, self.get_distance_slot_position(slots, i, pos)));
             }
         });
@@ -212,16 +229,6 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
                 .unwrap()
                 .0,
         )
-    }
-
-    // TODO: Merge with find_pit
-    fn find_spawner(&self, slots: &[Slot<T>]) -> Option<usize> {
-        for (i, v) in slots.iter().enumerate() {
-            if v.is_spawner() {
-                return Some(i);
-            }
-        }
-        None
     }
 
     fn find_slot_with_payload_that_should_go_to_the_pit(&self, slots: &[Slot<T>]) -> Option<usize> {
@@ -722,7 +729,7 @@ mod tests {
     }
 
     #[test]
-    fn find_closest_pit1() {
+    fn find_closest_object1() {
         let dispatcher = Dispatcher::new();
         let slots = vec![
             Slot::new(
@@ -742,13 +749,19 @@ mod tests {
         ];
 
         assert_eq!(
-            dispatcher.find_closest_pit(&slots, &Position::new(10.0, 10.0)),
+            dispatcher
+                .find_closest_object(&slots, &Position::new(10.0, 10.0), |slot| slot.is_pit()),
+            None
+        );
+        assert_eq!(
+            dispatcher
+                .find_closest_object(&slots, &Position::new(10.0, 10.0), |slot| slot.is_spawner()),
             None
         );
     }
 
     #[test]
-    fn find_closest_pit2() {
+    fn find_closest_object() {
         let dispatcher = Dispatcher::new();
         let slots = vec![
             Slot::new(
@@ -759,16 +772,23 @@ mod tests {
                 SlotKind::CLASSIC,
             ),
             make_slot_pit!(1000.0, 1000.0),
+            make_slot_spawner!(1000.0, 1000.0),
         ];
 
         assert_eq!(
-            dispatcher.find_closest_pit(&slots, &Position::new(10.0, 10.0)),
+            dispatcher
+                .find_closest_object(&slots, &Position::new(10.0, 10.0), |slot| slot.is_pit()),
             Some(1)
+        );
+        assert_eq!(
+            dispatcher
+                .find_closest_object(&slots, &Position::new(10.0, 10.0), |slot| slot.is_spawner()),
+            Some(2)
         );
     }
 
     #[test]
-    fn find_closest_pit3() {
+    fn find_closest_object3() {
         let dispatcher = Dispatcher::new();
         let slots = vec![
             Slot::new(
@@ -780,11 +800,19 @@ mod tests {
             ),
             make_slot_pit!(1000.0, 1000.0),
             make_slot_pit!(0.0, 0.0),
+            make_slot_spawner!(1000.0, 1000.0),
+            make_slot_spawner!(0.0, 0.0),
         ];
 
         assert_eq!(
-            dispatcher.find_closest_pit(&slots, &Position::new(10.0, 10.0)),
+            dispatcher
+                .find_closest_object(&slots, &Position::new(10.0, 10.0), |slot| slot.is_pit()),
             Some(2)
+        );
+        assert_eq!(
+            dispatcher
+                .find_closest_object(&slots, &Position::new(10.0, 10.0), |slot| slot.is_spawner()),
+            Some(4)
         );
     }
 
