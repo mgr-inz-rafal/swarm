@@ -10,6 +10,8 @@ use std::hash::Hash;
 const ANGLE_INCREMENT: f64 = 0.15;
 const SPEED_FACTOR: f64 = 6.0;
 const POSITION_EQUALITY_EPSILON: f64 = SPEED_FACTOR * 1.5;
+const DEFAULT_ACCELERATION: f64 = 0.13;
+const DEFAULT_MAX_SPEED: f64 = 8.0;
 
 /// States that apply to Carriers
 ///
@@ -57,6 +59,9 @@ pub(crate) enum RotationDirection {
 pub struct Carrier<T: PartialEq + Eq + Hash + Copy> {
     pos: Position,
     angle: f64,
+    pub acceleration: f64,
+    pub max_speed: f64,
+    speed: f64,
     pub(crate) state: State,
     pub(crate) payload: Option<Payload<T>>,
     pub(crate) reserved_target: Option<usize>,
@@ -79,6 +84,9 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
         Carrier {
             pos: Position::new(x, y),
             angle: 0.0,
+            acceleration: DEFAULT_ACCELERATION,
+            max_speed: DEFAULT_MAX_SPEED,
+            speed: 0.0,
             state: State::IDLE,
             payload: None,
             reserved_target: None,
@@ -102,6 +110,10 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     /// ```
     pub fn get_payload(&self) -> Option<Payload<T>> {
         self.payload
+    }
+
+    pub fn get_speed(&self) -> f64 {
+        self.speed
     }
 
     /// Returns index of the slot that carriers is going to
@@ -270,9 +282,15 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
         )
     }
 
+    fn accelerate(&mut self) {
+        self.speed += self.acceleration;
+        if self.speed > self.max_speed {self.speed = self.max_speed};
+    }
+
     fn move_forward(&mut self) {
-        self.pos.x += self.angle.cos() * SPEED_FACTOR;
-        self.pos.y += self.angle.sin() * SPEED_FACTOR;
+        self.accelerate();
+        self.pos.x += self.angle.cos() * self.speed;
+        self.pos.y += self.angle.sin() * self.speed;
     }
 
     fn move_forward_to_point(&mut self, target: (f64, f64)) -> bool {
