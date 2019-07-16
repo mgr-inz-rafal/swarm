@@ -10,8 +10,8 @@ use std::hash::Hash;
 const ANGLE_INCREMENT: f64 = 0.15;
 const SPEED_FACTOR: f64 = 6.0;
 const POSITION_EQUALITY_EPSILON: f64 = SPEED_FACTOR * 1.5;
-const DEFAULT_ACCELERATION: f64 = 0.13;
-const DEFAULT_MAX_SPEED: f64 = 8.0;
+const DEFAULT_ACCELERATION: f64 = 0.47;
+const DEFAULT_MAX_SPEED: f64 = 6.0;
 
 /// States that apply to Carriers
 ///
@@ -60,6 +60,7 @@ pub struct Carrier<T: PartialEq + Eq + Hash + Copy> {
     pos: Position,
     angle: f64,
     pub acceleration: f64,
+    effective_acceleration: f64,
     pub max_speed: f64,
     speed: f64,
     pub(crate) state: State,
@@ -85,8 +86,9 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
             pos: Position::new(x, y),
             angle: 0.0,
             acceleration: DEFAULT_ACCELERATION,
+            effective_acceleration: DEFAULT_ACCELERATION,
             max_speed: DEFAULT_MAX_SPEED,
-            speed: 0.0,
+            speed: 100.0,
             state: State::IDLE,
             payload: None,
             reserved_target: None,
@@ -114,6 +116,10 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
 
     pub fn get_speed(&self) -> f64 {
         self.speed
+    }
+
+    pub fn set_acceleration(&mut self, acceleration: f64) {
+        self.acceleration = acceleration;
     }
 
     /// Returns index of the slot that carriers is going to
@@ -283,18 +289,61 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     }
 
     fn accelerate(&mut self) {
-        self.speed += self.acceleration;
-        if self.speed > self.max_speed {self.speed = self.max_speed};
+        self.speed += self.effective_acceleration;
+        if self.speed > self.max_speed {
+            self.speed = self.max_speed
+        };
     }
 
-    fn move_forward(&mut self) {
+    fn move_forward(&mut self, target: (f64, f64)) {
+        fn dupa(p1: &Position, p2: &Position) -> f64 {
+            ((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y)).sqrt()
+        }
+
+        if self.effective_acceleration > 0.0 {
+            let mut tick_to_decelerate = 0;
+            let mut my_speed = self.speed;
+            loop {
+                my_speed -= self.acceleration;
+                tick_to_decelerate += 1;
+                if my_speed < 0.0 {
+                    break;
+                }
+            }
+
+            let mut distance_to_stop = 0.0;
+            my_speed = self.speed;
+            for _ in 0..tick_to_decelerate {
+                distance_to_stop += my_speed;
+                my_speed -= self.acceleration;
+            }
+
+            let distance_to_target = dupa(&Position::new(target.0, target.1), self.get_position());
+
+            print!(
+                "Acc: {:.2}\tSpeed: {:.2}\tTTS: {:.2}\tDTS: {:.2}\tDTT: {:.2}",
+                self.acceleration,
+                self.speed,
+                tick_to_decelerate,
+                distance_to_stop,
+                distance_to_target
+            );
+
+            if distance_to_stop > distance_to_target {
+                println!(" - STOP!");
+                self.effective_acceleration = -self.effective_acceleration;
+            } else {
+                println!();
+            }
+        }
+
         self.accelerate();
         self.pos.x += self.angle.cos() * self.speed;
         self.pos.y += self.angle.sin() * self.speed;
     }
 
     fn move_forward_to_point(&mut self, target: (f64, f64)) -> bool {
-        self.move_forward();
+        self.move_forward(target);
         self.is_close_enough(target)
     }
 
@@ -315,6 +364,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
                 let target_pos = slots[target].get_position();
                 if self.move_forward_to_point((target_pos.x, target_pos.y)) {
                     self.rotation_direction = None;
+                    self.effective_acceleration = self.acceleration;
                     match self.payload {
                         Some(_) => self.state = State::PUTTINGDOWN(target),
                         None => self.state = State::PICKINGUP(target),
@@ -365,7 +415,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
                 self.idle_rotation_direction = Carrier::<T>::pick_random_idle_rotation();
             }
             State::IDLE | State::NOTARGET => {
-                self.move_forward();
+                self.move_forward((5.0, 5.0));
                 self.idle_rotate();
             }
             _ => {}

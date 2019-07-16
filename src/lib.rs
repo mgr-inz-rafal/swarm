@@ -84,7 +84,8 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
         }
     }
 
-    /// Adds new carrier
+    /// Adds new carrier.
+    /// Returns the index of the new carrier.
     ///
     /// # Example
     ///
@@ -93,11 +94,12 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
     /// let mut game = Swarm::<char>::new();
     /// game.add_carrier(Carrier::new(100.0, 200.0));
     /// ```
-    pub fn add_carrier(&mut self, carrier: Carrier<T>) {
-        Swarm::<T>::add_object(&mut self.carriers, carrier);
+    pub fn add_carrier(&mut self, carrier: Carrier<T>) -> usize {
+        Swarm::<T>::add_object(&mut self.carriers, carrier)
     }
 
-    /// Adds new slot
+    /// Adds new slot.
+    /// Returns the index of the new slot.
     ///
     /// # Example
     ///
@@ -106,13 +108,22 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
     /// let mut game = Swarm::<char>::new();
     /// game.add_slot(Slot::new(100.0, 100.0, None, Some(Payload::new('X')), swarm_it::SlotKind::CLASSIC));
     /// ```
-    pub fn add_slot(&mut self, slot: Slot<T>) {
-        Swarm::<T>::add_object(&mut self.slots, slot);
+    pub fn add_slot(&mut self, slot: Slot<T>) -> usize {
+        Swarm::<T>::add_object(&mut self.slots, slot)
     }
 
     /// Returns all carriers
     pub fn get_carriers(&self) -> &Vec<Carrier<T>> {
         &self.carriers
+    }
+
+    /// Sets the acceleration of the specified carrier.
+    /// It set the capability of how fast the carrier can accelerate,
+    /// it DOESN'T affect current acceleration, as this is maintained by
+    /// the engine internals. Therefore if carrier is, for example, slowing down to
+    /// pickup the cargo, call to this function will interrupt this process.
+    pub fn set_carrier_acceleration(&mut self, index: usize, acceleration: f64) {
+        self.carriers[index].set_acceleration(acceleration);
     }
 
     /// Returns all slots
@@ -178,8 +189,9 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
         self.dispatcher.precalc(&self.slots);
     }
 
-    fn add_object<U>(vec: &mut Vec<U>, obj: U) {
+    fn add_object<U>(vec: &mut Vec<U>, obj: U) -> usize {
         vec.push(obj);
+        vec.len() - 1
     }
 
     fn all_carriers_idle(&self) -> bool {
