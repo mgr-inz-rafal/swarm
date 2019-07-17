@@ -59,9 +59,9 @@ pub(crate) enum RotationDirection {
 pub struct Carrier<T: PartialEq + Eq + Hash + Copy> {
     pos: Position,
     angle: f64,
-    pub acceleration: f64,
+    pub(crate) acceleration: f64,
     effective_acceleration: f64,
-    pub max_speed: f64,
+    pub(crate) max_speed: f64,
     speed: f64,
     pub(crate) state: State,
     pub(crate) payload: Option<Payload<T>>,
@@ -85,10 +85,11 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
         Carrier {
             pos: Position::new(x, y),
             angle: 0.0,
+            /// Sets the acceleration of the carrier. Speed will be modified by this amout per tick during acceleration and deceleration
             acceleration: DEFAULT_ACCELERATION,
-            effective_acceleration: DEFAULT_ACCELERATION,
+            effective_acceleration: 0.0,
             max_speed: DEFAULT_MAX_SPEED,
-            speed: 100.0,
+            speed: 0.0,
             state: State::IDLE,
             payload: None,
             reserved_target: None,
@@ -112,14 +113,6 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     /// ```
     pub fn get_payload(&self) -> Option<Payload<T>> {
         self.payload
-    }
-
-    pub fn get_speed(&self) -> f64 {
-        self.speed
-    }
-
-    pub fn set_acceleration(&mut self, acceleration: f64) {
-        self.acceleration = acceleration;
     }
 
     /// Returns index of the slot that carriers is going to
@@ -216,6 +209,8 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
         }
 
         self.state = State::TARGETING(target);
+        self.speed = 0.0;
+        self.effective_acceleration = self.acceleration;
         slot.taken_care_of = true;
         self.rotation_direction = None;
         self.temporary_target = is_temporary;
@@ -289,6 +284,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     }
 
     fn accelerate(&mut self) {
+        println!("Accelerating by {}", self.effective_acceleration);
         self.speed += self.effective_acceleration;
         if self.speed > self.max_speed {
             self.speed = self.max_speed

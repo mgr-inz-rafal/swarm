@@ -118,12 +118,12 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
     }
 
     /// Sets the acceleration of the specified carrier.
-    /// It set the capability of how fast the carrier can accelerate,
+    /// It sets the capability of how fast the carrier can accelerate,
     /// it DOESN'T affect current acceleration, as this is maintained by
     /// the engine internals. Therefore if carrier is, for example, slowing down to
     /// pickup the cargo, call to this function will interrupt this process.
     pub fn set_carrier_acceleration(&mut self, index: usize, acceleration: f64) {
-        self.carriers[index].set_acceleration(acceleration);
+        self.carriers[index].acceleration = acceleration;
     }
 
     /// Returns all slots
