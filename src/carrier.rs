@@ -405,7 +405,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
                 self.idle_rotation_direction = Carrier::<T>::pick_random_idle_rotation();
             }
             State::IDLE | State::NOTARGET => {
-                self.move_forward((5.0, 5.0));
+                self.move_forward((5.0, 5.0)); // TODO: Allow moving forward without specifying target
                 self.idle_rotate();
             }
             _ => {}
