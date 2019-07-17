@@ -320,10 +320,8 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     fn move_forward(&mut self, target: (f64, f64)) {
         if self.effective_acceleration > 0.0 {
             let distance_to_stop = self.calculate_distance_to_stop();
-
             let distance_to_target =
                 distance_between_positions(&Position::new(target.0, target.1), self.get_position());
-
             if distance_to_stop > distance_to_target {
                 self.effective_acceleration = -self.effective_acceleration;
             }
