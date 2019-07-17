@@ -289,28 +289,29 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     }
 
     fn accelerate(&mut self) {
-        println!("Accelerating by {}", self.effective_acceleration);
         self.speed += self.effective_acceleration;
         if self.speed > self.max_speed {
             self.speed = self.max_speed
         };
     }
 
+    fn calculate_tics_to_decelerate(&self) -> u32 {
+        let mut ticks_to_decelerate = 0;
+        let mut speed_tmp = self.speed;
+        loop {
+            speed_tmp -= self.acceleration;
+            ticks_to_decelerate += 1;
+            if speed_tmp < 0.0 {
+                return ticks_to_decelerate;
+            }
+        }
+    }
+
     fn move_forward(&mut self, target: (f64, f64)) {
         if self.effective_acceleration > 0.0 {
-            let mut tick_to_decelerate = 0;
-            let mut my_speed = self.speed;
-            loop {
-                my_speed -= self.acceleration;
-                tick_to_decelerate += 1;
-                if my_speed < 0.0 {
-                    break;
-                }
-            }
-
             let mut distance_to_stop = 0.0;
-            my_speed = self.speed;
-            for _ in 0..tick_to_decelerate {
+            let mut my_speed = self.speed;
+            for _ in 0..self.calculate_tics_to_decelerate() {
                 distance_to_stop += my_speed;
                 my_speed -= self.acceleration;
             }
@@ -318,20 +319,8 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
             let distance_to_target =
                 distance_between_positions(&Position::new(target.0, target.1), self.get_position());
 
-            print!(
-                "Acc: {:.2}\tSpeed: {:.2}\tTTS: {:.2}\tDTS: {:.2}\tDTT: {:.2}",
-                self.acceleration,
-                self.speed,
-                tick_to_decelerate,
-                distance_to_stop,
-                distance_to_target
-            );
-
             if distance_to_stop > distance_to_target {
-                println!(" - STOP!");
                 self.effective_acceleration = -self.effective_acceleration;
-            } else {
-                println!();
             }
         }
 
