@@ -277,8 +277,12 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     }
 
     fn is_close_enough(&self, target: (f64, f64)) -> bool {
+        // TODO: This function might be not needed since
+        // dynamic acceleration and deceleration has been introduced.
+        // Now it is assumed that Carrier will decelerate
+        // to stop at the exact target position.
         relative_eq!(
-            ((self.pos.x - target.0).powf(2.0) + (self.pos.y - target.1).powf(2.0)).sqrt(),
+            distance_between_positions(&Position::new(target.0, target.1), self.get_position()),
             0.0,
             epsilon = POSITION_EQUALITY_EPSILON
         )
