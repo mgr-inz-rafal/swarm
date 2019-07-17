@@ -307,14 +307,19 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
         }
     }
 
+    fn calculate_distance_to_stop(&self) -> f64 {
+        let mut distance_to_stop = 0.0;
+        let mut speed_tmp = self.speed;
+        for _ in 0..self.calculate_tics_to_decelerate() {
+            distance_to_stop += speed_tmp;
+            speed_tmp -= self.acceleration;
+        }
+        distance_to_stop
+    }
+
     fn move_forward(&mut self, target: (f64, f64)) {
         if self.effective_acceleration > 0.0 {
-            let mut distance_to_stop = 0.0;
-            let mut my_speed = self.speed;
-            for _ in 0..self.calculate_tics_to_decelerate() {
-                distance_to_stop += my_speed;
-                my_speed -= self.acceleration;
-            }
+            let distance_to_stop = self.calculate_distance_to_stop();
 
             let distance_to_target =
                 distance_between_positions(&Position::new(target.0, target.1), self.get_position());
