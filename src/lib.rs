@@ -123,6 +123,15 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
     /// it DOESN'T affect current acceleration, as this is maintained by
     /// the engine internals. Therefore if carrier is, for example, slowing down to
     /// pickup the cargo, call to this function will interrupt this process.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use swarm_it::*;
+    /// let mut game = Swarm::<char>::new();
+    /// let index = game.add_carrier(Carrier::new(100.0, 200.0));
+    /// game.set_carrier_acceleration(index, 5.0);
+    /// ```
     pub fn set_carrier_acceleration(&mut self, index: usize, acceleration: f64) {
         self.carriers[index].acceleration = acceleration;
     }
