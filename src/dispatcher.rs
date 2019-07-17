@@ -5,6 +5,7 @@ use super::carrier::*;
 use super::payload::*;
 use super::position::*;
 use super::slot::*;
+use super::tools::*;
 
 #[derive(Default)]
 pub(crate) struct Dispatcher<T: PartialEq + Eq + Hash + Copy> {
@@ -44,11 +45,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
         s: usize,
         pos: &Position,
     ) -> f64 {
-        Dispatcher::<T>::distance_between_points(slots[s].get_position(), pos)
-    }
-
-    fn distance_between_points(p1: &Position, p2: &Position) -> f64 {
-        ((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y)).sqrt()
+        distance_between_positions(slots[s].get_position(), pos)
     }
 
     fn calculate_slot_distances(&mut self, slots: &[Slot<T>]) {
@@ -56,7 +53,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Dispatcher<T> {
             slots.iter().enumerate().for_each(|(i2, v2)| {
                 self.slot_distances.insert(
                     (i1, i2),
-                    Dispatcher::<T>::distance_between_points(v1.get_position(), v2.get_position()),
+                    distance_between_positions(v1.get_position(), v2.get_position()),
                 );
             })
         });

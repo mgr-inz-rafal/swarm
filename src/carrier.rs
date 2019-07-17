@@ -4,12 +4,15 @@ extern crate rand;
 use super::payload::*;
 use super::position::*;
 use super::slot::*;
+use super::tools::*;
 use rand::Rng;
 use std::hash::Hash;
 
 const ANGLE_INCREMENT: f64 = 0.15;
 const SPEED_FACTOR: f64 = 6.0;
 const POSITION_EQUALITY_EPSILON: f64 = SPEED_FACTOR * 1.5;
+const DEFAULT_ACCELERATION: f64 = 0.47;
+const DEFAULT_MAX_SPEED: f64 = 6.0;
 
 /// States that apply to Carriers
 ///
@@ -57,6 +60,10 @@ pub(crate) enum RotationDirection {
 pub struct Carrier<T: PartialEq + Eq + Hash + Copy> {
     pos: Position,
     angle: f64,
+    pub(crate) acceleration: f64,
+    effective_acceleration: f64,
+    pub(crate) max_speed: f64,
+    speed: f64,
     pub(crate) state: State,
     pub(crate) payload: Option<Payload<T>>,
     pub(crate) reserved_target: Option<usize>,
@@ -79,6 +86,11 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
         Carrier {
             pos: Position::new(x, y),
             angle: 0.0,
+            /// Sets the acceleration of the carrier. Speed will be modified by this amout per tick during acceleration and deceleration
+            acceleration: DEFAULT_ACCELERATION,
+            effective_acceleration: 0.0,
+            max_speed: DEFAULT_MAX_SPEED,
+            speed: 0.0,
             state: State::IDLE,
             payload: None,
             reserved_target: None,
@@ -198,6 +210,8 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
         }
 
         self.state = State::TARGETING(target);
+        self.speed = 0.0;
+        self.effective_acceleration = self.acceleration;
         slot.taken_care_of = true;
         self.rotation_direction = None;
         self.temporary_target = is_temporary;
@@ -263,20 +277,63 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     }
 
     fn is_close_enough(&self, target: (f64, f64)) -> bool {
+        // TODO: This function might be not needed since
+        // dynamic acceleration and deceleration has been introduced.
+        // Now it is assumed that Carrier will decelerate
+        // to stop at the exact target position.
         relative_eq!(
-            ((self.pos.x - target.0).powf(2.0) + (self.pos.y - target.1).powf(2.0)).sqrt(),
+            distance_between_positions(&Position::new(target.0, target.1), self.get_position()),
             0.0,
             epsilon = POSITION_EQUALITY_EPSILON
         )
     }
 
-    fn move_forward(&mut self) {
-        self.pos.x += self.angle.cos() * SPEED_FACTOR;
-        self.pos.y += self.angle.sin() * SPEED_FACTOR;
+    fn accelerate(&mut self) {
+        self.speed += self.effective_acceleration;
+        if self.speed > self.max_speed {
+            self.speed = self.max_speed
+        };
+    }
+
+    fn calculate_tics_to_decelerate(&self) -> u32 {
+        let mut ticks_to_decelerate = 0;
+        let mut speed_tmp = self.speed;
+        loop {
+            speed_tmp -= self.acceleration;
+            ticks_to_decelerate += 1;
+            if speed_tmp < 0.0 {
+                return ticks_to_decelerate;
+            }
+        }
+    }
+
+    fn calculate_distance_to_stop(&self) -> f64 {
+        let mut distance_to_stop = 0.0;
+        let mut speed_tmp = self.speed;
+        for _ in 0..self.calculate_tics_to_decelerate() {
+            distance_to_stop += speed_tmp;
+            speed_tmp -= self.acceleration;
+        }
+        distance_to_stop
+    }
+
+    fn move_forward(&mut self, target: (f64, f64)) {
+        if self.effective_acceleration > 0.0 {
+            let distance_to_stop = self.calculate_distance_to_stop();
+            let distance_to_target =
+                distance_between_positions(&Position::new(target.0, target.1), self.get_position());
+            if distance_to_stop > distance_to_target {
+                self.effective_acceleration = -self.effective_acceleration;
+            }
+        }
+
+        self.accelerate();
+        self.pos.x += self.angle.cos() * self.speed;
+        self.pos.y += self.angle.sin() * self.speed;
     }
 
     fn move_forward_to_point(&mut self, target: (f64, f64)) -> bool {
-        self.move_forward();
+        self.move_forward(target);
         self.is_close_enough(target)
     }
 
@@ -297,6 +354,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
                 let target_pos = slots[target].get_position();
                 if self.move_forward_to_point((target_pos.x, target_pos.y)) {
                     self.rotation_direction = None;
+                    self.effective_acceleration = self.acceleration;
                     match self.payload {
                         Some(_) => self.state = State::PUTTINGDOWN(target),
                         None => self.state = State::PICKINGUP(target),
@@ -347,7 +405,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
                 self.idle_rotation_direction = Carrier::<T>::pick_random_idle_rotation();
             }
             State::IDLE | State::NOTARGET => {
-                self.move_forward();
+                self.move_forward((5.0, 5.0)); // TODO: Allow moving forward without specifying target
                 self.idle_rotate();
             }
             _ => {}
