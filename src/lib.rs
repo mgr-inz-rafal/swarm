@@ -6,6 +6,7 @@ mod dispatcher;
 mod payload;
 mod position;
 mod slot;
+mod tools;
 
 use std::hash::Hash;
 

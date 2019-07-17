@@ -4,6 +4,7 @@ extern crate rand;
 use super::payload::*;
 use super::position::*;
 use super::slot::*;
+use super::tools::*;
 use rand::Rng;
 use std::hash::Hash;
 
@@ -292,10 +293,6 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     }
 
     fn move_forward(&mut self, target: (f64, f64)) {
-        fn dupa(p1: &Position, p2: &Position) -> f64 {
-            ((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y)).sqrt()
-        }
-
         if self.effective_acceleration > 0.0 {
             let mut tick_to_decelerate = 0;
             let mut my_speed = self.speed;
@@ -314,7 +311,8 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
                 my_speed -= self.acceleration;
             }
 
-            let distance_to_target = dupa(&Position::new(target.0, target.1), self.get_position());
+            let distance_to_target =
+                distance_between_positions(&Position::new(target.0, target.1), self.get_position());
 
             print!(
                 "Acc: {:.2}\tSpeed: {:.2}\tTTS: {:.2}\tDTS: {:.2}\tDTT: {:.2}",
