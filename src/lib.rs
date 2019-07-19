@@ -136,6 +136,21 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
         self.carriers[index].acceleration = acceleration;
     }
 
+    /// Returns the acceleration of the specified carrier.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use swarm_it::*;
+    /// let mut game = Swarm::<char>::new();
+    /// let index = game.add_carrier(Carrier::new(100.0, 200.0));
+    /// game.set_carrier_acceleration(index, 5.0);
+    /// assert!(approx::relative_eq!(game.get_carrier_acceleration(index), 5.0));
+    /// ```
+    pub fn get_carrier_acceleration(&mut self, index: usize) -> f64 {
+        self.carriers[index].acceleration
+    }
+
     /// Returns all slots
     pub fn get_slots(&self) -> &Vec<Slot<T>> {
         &self.slots
