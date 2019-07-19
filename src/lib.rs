@@ -151,6 +151,35 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
         self.carriers[index].acceleration
     }
 
+    /// Sets the maximum speed of the specified carrier.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use swarm_it::*;
+    /// let mut game = Swarm::<char>::new();
+    /// let index = game.add_carrier(Carrier::new(100.0, 200.0));
+    /// game.set_carrier_max_speed(index, 50.0);
+    /// ```
+    pub fn set_carrier_max_speed(&mut self, index: usize, max_speed: f64) {
+        self.carriers[index].max_speed = max_speed;
+    }
+
+    /// Returns the maximum speed of the specified carrier.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use swarm_it::*;
+    /// let mut game = Swarm::<char>::new();
+    /// let index = game.add_carrier(Carrier::new(100.0, 200.0));
+    /// game.set_carrier_max_speed(index, 50.0);
+    /// assert!(approx::relative_eq!(game.get_carrier_max_speed(index), 50.0));
+    /// ```
+    pub fn get_carrier_max_speed(&mut self, index: usize) -> f64 {
+        self.carriers[index].max_speed
+    }
+
     /// Returns all slots
     pub fn get_slots(&self) -> &Vec<Slot<T>> {
         &self.slots
