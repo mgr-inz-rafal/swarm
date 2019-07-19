@@ -151,7 +151,7 @@ fn issue19_try_to_crash_lots_of_carriers() {
     game.slot_data_changed();
 
     // Execute 1000 tics, expect no panic
-    for _ in 0..1000 {
+    for _ in 0..500 {
         game.tick();
     }
 }
