@@ -62,6 +62,7 @@ pub struct Swarm<T: PartialEq + Eq + Hash + Copy> {
     slots: Vec<Slot<T>>,
     first_tick: bool,
     idle_ticks: u8,
+    tick_counter: u64,
     dispatcher: Dispatcher<T>,
 }
 
@@ -81,6 +82,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
             slots: Vec::new(),
             first_tick: true,
             idle_ticks: 0,
+            tick_counter: 0,
             dispatcher: Dispatcher::new(),
         }
     }
@@ -205,6 +207,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
     /// if game.tick() { println!("Job finished, yay!"); };
     /// ```
     pub fn tick(&mut self) -> bool {
+        self.tick_counter += 1;
         let mut slots = &mut self.slots;
         if self.first_tick {
             self.dispatcher.precalc(&slots);

@@ -86,7 +86,6 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
         Carrier {
             pos: Position::new(x, y),
             angle: 0.0,
-            /// Sets the acceleration of the carrier. Speed will be modified by this amout per tick during acceleration and deceleration
             acceleration: DEFAULT_ACCELERATION,
             effective_acceleration: 0.0,
             max_speed: DEFAULT_MAX_SPEED,
@@ -276,23 +275,16 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
         }
     }
 
-    fn is_close_enough(&self, target: (f64, f64)) -> bool {
-        // TODO: This function might be not needed since
-        // dynamic acceleration and deceleration has been introduced.
-        // Now it is assumed that Carrier will decelerate
-        // to stop at the exact target position.
-        relative_eq!(
-            distance_between_positions(&Position::new(target.0, target.1), self.get_position()),
-            0.0,
-            epsilon = POSITION_EQUALITY_EPSILON
-        )
-    }
-
-    fn accelerate(&mut self) {
+    fn accelerate(&mut self) -> bool {
         self.speed += self.effective_acceleration;
         if self.speed > self.max_speed {
             self.speed = self.max_speed
         };
+        if self.speed < 0.0 {
+            self.speed = 0.0;
+            return true; // Notify that carrier is at the destination
+        };
+        false
     }
 
     fn calculate_tics_to_decelerate(&self) -> u32 {
@@ -317,7 +309,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
         distance_to_stop
     }
 
-    fn move_forward(&mut self, target: (f64, f64)) {
+    fn move_forward(&mut self, target: (f64, f64)) -> bool {
         if self.effective_acceleration > 0.0 {
             let distance_to_stop = self.calculate_distance_to_stop();
             let distance_to_target =
@@ -327,14 +319,14 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
             }
         }
 
-        self.accelerate();
+        let at_destination = self.accelerate();
         self.pos.x += self.angle.cos() * self.speed;
         self.pos.y += self.angle.sin() * self.speed;
+        at_destination
     }
 
     fn move_forward_to_point(&mut self, target: (f64, f64)) -> bool {
-        self.move_forward(target);
-        self.is_close_enough(target)
+        self.move_forward(target)
     }
 
     pub(crate) fn tick(&mut self, slots: &mut Vec<Slot<T>>) {
