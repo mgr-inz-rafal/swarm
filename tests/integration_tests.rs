@@ -151,7 +151,39 @@ fn issue19_try_to_crash_lots_of_carriers() {
     game.slot_data_changed();
 
     // Execute 1000 tics, expect no panic
-    for _ in 0..500 {
+    for _ in 0..60 {
         game.tick();
     }
+}
+
+#[test]
+fn issue26_high_speed_carrier_not_reaching_target() {
+    // https://github.com/mgr-inz-rafal/swarm/issues/26
+
+    let mut game = swarm_it::Swarm::new();
+
+    let i = game.add_carrier(Carrier::new(50.0, 50.0));
+    game.set_carrier_acceleration(i, 2.0);
+    game.set_carrier_max_speed(i, 50.0);
+
+    game.add_slot(Slot::new(
+        200.0,
+        200.0,
+        Some(Payload::new('A')),
+        Some(Payload::new('B')),
+        SlotKind::CLASSIC,
+    ));
+    game.add_slot(make_slot_pit!(0.0, 0.0));
+
+    // Get ready
+    game.slot_data_changed();
+
+    // After 60 ticks expect that carrier has a cargo
+    for _ in 0..60 {
+        game.tick();
+    }
+
+    let carriers = game.get_carriers();
+    let payload = carriers[i].get_payload();
+    assert!(payload.is_some());
 }
