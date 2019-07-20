@@ -163,7 +163,14 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
         &self.pos
     }
 
-    /// Returns current carrier angle
+    /// Returns current carrier angle.
+    ///
+    /// Direction | Angle
+    /// ----------|--------
+    /// Right     | 0 / 2*π
+    /// Down      | π/2
+    /// Left      | π
+    /// Up        | ³/₂*π
     ///
     /// # Example
     ///
@@ -229,8 +236,8 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     fn rotate(&mut self) {
         if let Some(direction) = self.rotation_direction {
             match direction {
-                RotationDirection::CLOCKWISE => self.angle += ANGLE_INCREMENT,
-                RotationDirection::COUNTERCLOCKWISE => self.angle -= ANGLE_INCREMENT,
+                RotationDirection::CLOCKWISE => self.turn_clockwise(),
+                RotationDirection::COUNTERCLOCKWISE => self.turn_counterclockwise(),
             }
         }
     }
@@ -238,9 +245,23 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     fn idle_rotate(&mut self) {
         if let Some(direction) = self.idle_rotation_direction {
             match direction {
-                RotationDirection::CLOCKWISE => self.angle += ANGLE_INCREMENT,
-                RotationDirection::COUNTERCLOCKWISE => self.angle -= ANGLE_INCREMENT,
+                RotationDirection::CLOCKWISE => self.turn_clockwise(),
+                RotationDirection::COUNTERCLOCKWISE => self.turn_counterclockwise(),
             }
+        }
+    }
+
+    fn turn_clockwise(&mut self) {
+        self.angle += ANGLE_INCREMENT;
+        if self.angle > 2.0 * std::f64::consts::PI {
+            self.angle -= 2.0 * std::f64::consts::PI;
+        }
+    }
+
+    fn turn_counterclockwise(&mut self) {
+        self.angle -= ANGLE_INCREMENT;
+        if self.angle < 0.0 {
+            self.angle += 2.0 * std::f64::consts::PI;
         }
     }
 
