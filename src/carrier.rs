@@ -60,7 +60,7 @@ pub(crate) enum RotationDirection {
 pub struct Carrier<T: PartialEq + Eq + Hash + Copy> {
     pos: Position,
     angle: f64,
-    pub(crate) acceleration: f64,
+    acceleration: f64,
     effective_acceleration: f64,
     pub(crate) max_speed: f64,
     speed: f64,
@@ -192,6 +192,36 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     /// ```
     pub fn get_state(&self) -> State {
         self.state
+    }
+
+    /// Sets carrier acceleration. This *doesn't* affect the current movement
+    /// of a carrier, since this is controlled by the engine. It sets the
+    /// carrier's ability to accelerate.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let mut carrier = swarm_it::Carrier::<char>::new(100.0, 100.0);
+    /// carrier.set_acceleration(2.71);
+    /// approx::assert_abs_diff_eq!(carrier.get_acceleration(), 2.71);
+    /// ```
+    pub fn set_acceleration(&mut self, acceleration: f64) {
+        self.acceleration = acceleration;
+    }
+
+    /// Gets carrier acceleration. This *doesn't* return the current
+    /// acceleration, but the number that defines the carrier's ability
+    /// to accelerate.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let mut carrier = swarm_it::Carrier::<char>::new(100.0, 100.0);
+    /// carrier.set_acceleration(2.71);
+    /// approx::assert_abs_diff_eq!(carrier.get_acceleration(), 2.71);
+    /// ```
+    pub fn get_acceleration(&self) -> f64 {
+        self.acceleration
     }
 
     fn pick_random_idle_rotation() -> Option<RotationDirection> {

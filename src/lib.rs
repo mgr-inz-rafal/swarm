@@ -120,37 +120,9 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
         &self.carriers
     }
 
-    /// Sets the acceleration of the specified carrier.
-    /// It sets the capability of how fast the carrier can accelerate,
-    /// it DOESN'T affect current acceleration, as this is maintained by
-    /// the engine internals. Therefore if carrier is, for example, slowing down to
-    /// pickup the cargo, call to this function will interrupt this process.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use swarm_it::*;
-    /// let mut game = Swarm::<char>::new();
-    /// let index = game.add_carrier(Carrier::new(100.0, 200.0));
-    /// game.set_carrier_acceleration(index, 5.0);
-    /// ```
-    pub fn set_carrier_acceleration(&mut self, index: usize, acceleration: f64) {
-        self.carriers[index].acceleration = acceleration;
-    }
-
-    /// Returns the acceleration of the specified carrier.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use swarm_it::*;
-    /// let mut game = Swarm::<char>::new();
-    /// let index = game.add_carrier(Carrier::new(100.0, 200.0));
-    /// game.set_carrier_acceleration(index, 5.0);
-    /// assert!(approx::relative_eq!(game.get_carrier_acceleration(index), 5.0));
-    /// ```
-    pub fn get_carrier_acceleration(&mut self, index: usize) -> f64 {
-        self.carriers[index].acceleration
+    /// Returns all carriers
+    pub fn get_carriers_mut(&mut self) -> &mut Vec<Carrier<T>> {
+        &mut self.carriers
     }
 
     /// Sets the maximum speed of the specified carrier.
@@ -187,7 +159,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Swarm<T> {
         &self.slots
     }
 
-    /// Returns all slots (To be deprecated)
+    /// Returns all slots
     pub fn get_slots_mut(&mut self) -> &mut Vec<Slot<T>> {
         &mut self.slots
     }
