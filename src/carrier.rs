@@ -9,8 +9,6 @@ use rand::Rng;
 use std::hash::Hash;
 
 const ANGLE_INCREMENT: f64 = 0.15;
-const SPEED_FACTOR: f64 = 6.0;
-const POSITION_EQUALITY_EPSILON: f64 = SPEED_FACTOR * 1.5;
 const DEFAULT_ACCELERATION: f64 = 0.47;
 const DEFAULT_MAX_SPEED: f64 = 6.0;
 
