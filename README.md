@@ -9,6 +9,10 @@ https://mgr-inz-rafal.github.io/swarm_it/
 
 # Demo
 
-[![](http://img.youtube.com/vi/vMaQWnlOqE0/0.jpg)](http://www.youtube.com/watch?v=vMaQWnlOqE0 "")
+Playlist with all videos: https://www.youtube.com/playlist?list=PLQVrVMV_eksWyFcX9_H3Mg9ewe6eJ2ycA
+
+Demonstration of the most recent version:
+
+[![](http://img.youtube.com/vi/llQ3p4wGoGw/0.jpg)](http://www.youtube.com/watch?v=llQ3p4wGoGw "")
 
 Sourcecode is available here: https://github.com/mgr-inz-rafal/swarm-test-timetable
