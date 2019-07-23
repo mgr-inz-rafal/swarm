@@ -11,4 +11,4 @@ repository = "https://github.com/mgr-inz-rafal/swarm"
 
 [dependencies]
 approx = "0.3.2"
-rand = "0.6.5"
+rand = "0.7.0"
