@@ -978,15 +978,15 @@ mod tests {
 
         dispatcher.calculate_slot_distances(&slots);
 
-        assert!(relative_eq!(dispatcher.get_distance_slot_slot(0, 1), 0.0));
-        assert!(relative_eq!(
+        approx::assert_abs_diff_eq!(dispatcher.get_distance_slot_slot(0, 1), 0.0);
+        approx::assert_abs_diff_eq!(
             dispatcher.get_distance_slot_slot(1, 2),
             100.0 * (2.0 as f64).sqrt()
-        ));
-        assert!(relative_eq!(
+        );
+        approx::assert_abs_diff_eq!(
             dispatcher.get_distance_slot_slot(2, 1),
             dispatcher.get_distance_slot_slot(1, 2)
-        ))
+        )
     }
 
     #[test]
