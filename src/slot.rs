@@ -68,8 +68,8 @@ impl<T: PartialEq + Eq + Hash + Copy> Slot<T> {
     /// let y = 200.0;
     /// let slot = swarm_it::Slot::<char>::new(x, y, None, None, swarm_it::SlotKind::CLASSIC);
     /// let position = slot.get_position();
-    /// assert!(approx::relative_eq!(position.x, x));
-    /// assert!(approx::relative_eq!(position.y, y));
+    /// approx::assert_abs_diff_eq!(position.x, x);
+    /// approx::assert_abs_diff_eq!(position.y, y);
     /// ```
     pub fn get_position(&self) -> &Position {
         &self.pos

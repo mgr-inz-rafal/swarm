@@ -9,8 +9,6 @@ use rand::Rng;
 use std::hash::Hash;
 
 const ANGLE_INCREMENT: f64 = 0.15;
-const SPEED_FACTOR: f64 = 6.0;
-const POSITION_EQUALITY_EPSILON: f64 = SPEED_FACTOR * 1.5;
 const DEFAULT_ACCELERATION: f64 = 0.47;
 const DEFAULT_MAX_SPEED: f64 = 6.0;
 
@@ -156,8 +154,8 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     /// let y = 200.0;
     /// let carrier = swarm_it::Carrier::<char>::new(x, y);
     /// let position = carrier.get_position();
-    /// assert!(approx::relative_eq!(position.x, x));
-    /// assert!(approx::relative_eq!(position.y, y));
+    /// approx::assert_abs_diff_eq!(position.x, x);
+    /// approx::assert_abs_diff_eq!(position.y, y);
     /// ```
     pub fn get_position(&self) -> &Position {
         &self.pos
@@ -176,7 +174,7 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
     ///
     /// ```
     /// let carrier = swarm_it::Carrier::<char>::new(100.0, 100.0);
-    /// assert!(approx::relative_eq!(carrier.get_angle(), 0.0));
+    /// approx::assert_abs_diff_eq!(carrier.get_angle(), 0.0);
     /// ```
     pub fn get_angle(&self) -> f64 {
         self.angle
