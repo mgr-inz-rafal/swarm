@@ -62,7 +62,7 @@ pub struct Carrier<T: PartialEq + Eq + Hash + Copy> {
     angle: f64,
     acceleration: f64,
     effective_acceleration: f64,
-    pub(crate) max_speed: f64,
+    max_speed: f64,
     speed: f64,
     pub(crate) state: State,
     pub(crate) payload: Option<Payload<T>>,
