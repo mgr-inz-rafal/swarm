@@ -224,6 +224,32 @@ impl<T: PartialEq + Eq + Hash + Copy> Carrier<T> {
         self.acceleration
     }
 
+    /// Sets maximum speed of a carrier.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let mut carrier = swarm_it::Carrier::<char>::new(100.0, 100.0);
+    /// carrier.set_max_speed(3.01);
+    /// approx::assert_abs_diff_eq!(carrier.get_max_speed(), 3.01);
+    /// ```
+    pub fn set_max_speed(&mut self, max_speed: f64) {
+        self.max_speed = max_speed;
+    }
+
+    /// Returns maximum speed of a carrier.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let mut carrier = swarm_it::Carrier::<char>::new(100.0, 100.0);
+    /// carrier.set_max_speed(3.01);
+    /// approx::assert_abs_diff_eq!(carrier.get_max_speed(), 3.01);
+    /// ```
+    pub fn get_max_speed(&self) -> f64 {
+        self.max_speed
+    }
+
     fn pick_random_idle_rotation() -> Option<RotationDirection> {
         let mut rng = rand::thread_rng();
         match rng.gen_range(0, 2) {

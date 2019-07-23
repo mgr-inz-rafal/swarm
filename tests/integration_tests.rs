@@ -163,8 +163,9 @@ fn issue26_high_speed_carrier_not_reaching_target() {
     let mut game = swarm_it::Swarm::new();
 
     let i = game.add_carrier(Carrier::new(50.0, 50.0));
-    game.get_carriers_mut()[i].set_acceleration(2.0);
-    game.set_carrier_max_speed(i, 50.0);
+    let mut carrier = game.get_carriers_mut()[i];
+    carrier.set_acceleration(2.0);
+    carrier.set_max_speed(50.0);
 
     game.add_slot(Slot::new(
         200.0,
