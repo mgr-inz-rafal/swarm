@@ -1,7 +1,7 @@
 # Swarm It
 
 [![Build Status](https://travis-ci.org/mgr-inz-rafal/swarm.svg?branch=master)](https://travis-ci.org/mgr-inz-rafal/swarm)
-![Official version](https://img.shields.io/crates/v/swarm_it.svg)
+[![Official version](https://img.shields.io/crates/v/swarm_it.svg)](https://crates.io/crates/swarm_it)
 
 # Documentation
 
